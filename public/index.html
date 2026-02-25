@@ -51,22 +51,35 @@
         };
 
         socket.on('update', (data) => {
-            // Обновяване на цветовете
-            document.getElementById('homeName').style.color = data.homeColor;
-            document.getElementById('awayName').style.color = data.awayColor;
-            
-            // Обновяване на ИМЕНАТА (това липсваше)
-            document.getElementById('homeName').innerText = data.homeName;
-            document.getElementById('awayName').innerText = data.awayName;
-            
-            // Обновяване на резултата и времето
-            document.getElementById('homeScore').innerText = data.home;
-            document.getElementById('awayScore').innerText = data.away;
-            document.getElementById('timer').innerText = formatTime(data.seconds);
-        });
+            const homeEl = document.getElementById('homeName');
+    const awayEl = document.getElementById('awayName');
 
-        socket.on('timerUpdate', (seconds) => {
-            document.getElementById('timer').innerText = formatTime(seconds);
+    // 1. Промяна на ЦВЕТА НА ОСНОВАТА (фона)
+    homeEl.style.backgroundColor = data.homeColor;
+    awayEl.style.backgroundColor = data.awayColor;
+
+    // 2. АВТОМАТИЧЕН ЦВЕТ НА БУКВИТЕ (Бял или Черен спрямо основата)
+    // Това е малък трик за четимост:
+    homeEl.style.color = getContrastYIQ(data.homeColor);
+    awayEl.style.color = getContrastYIQ(data.awayColor);
+
+    // 3. Обновяване на имената, резултата и времето
+    homeEl.innerText = data.homeName;
+    awayEl.innerText = data.awayName;
+    document.getElementById('homeScore').innerText = data.home;
+    document.getElementById('awayScore').innerText = data.away;
+    document.getElementById('timer').innerText = formatTime(data.seconds);
+});
+
+// Добавете тази помощна функция в края на скрипта, за да определя цвета на текста автоматично
+function getContrastYIQ(hexcolor){
+    hexcolor = hexcolor.replace("#", "");
+    var r = parseInt(hexcolor.substr(0,2),16);
+    var g = parseInt(hexcolor.substr(2,2),16);
+    var b = parseInt(hexcolor.substr(4,2),16);
+    var yiq = ((r*299)+(g*587)+(b*114))/1000;
+    return (yiq >= 128) ? 'black' : 'white'; // Ако фонът е светъл -> черни букви, ако е тъмен -> бели
+
         });
     </script>
 </body>
