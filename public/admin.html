@@ -3,68 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scoreboard Admin</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; background: #f0f0f0; text-align: center; }
-        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        button { padding: 15px 25px; font-size: 18px; cursor: pointer; margin: 5px; border-radius: 5px; border: none; }
-        .btn-goal { background: #28a745; color: white; }
-        .btn-start { background: #007bff; color: white; }
-        .btn-pause { background: #ffc107; }
-        .btn-reset { background: #dc3545; color: white; }
-        input { padding: 10px; font-size: 16px; margin: 5px; width: 150px; }
+        body { font-family: sans-serif; padding: 15px; background: #f4f4f4; text-align: center; }
+        .card { background: white; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #ddd; }
+        button { padding: 12px; font-size: 16px; margin: 3px; border-radius: 5px; border: none; cursor: pointer; min-width: 60px; }
+        .btn-plus { background: #28a745; color: white; }
+        .btn-minus { background: #6c757d; color: white; }
+        .btn-blue { background: #007bff; color: white; }
+        input[type="text"], input[type="number"] { padding: 10px; margin: 5px; width: 120px; border: 1px solid #ccc; }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <h2>Резултат</h2>
-        <button class="btn-goal" onclick="change(1, 0)">+ Домакин (Home)</button>
-        <button class="btn-goal" onclick="change(0, 1)">+ Гост (Away)</button>
-        <p><i>За намаляване на резултат, използвайте бутони с отрицателна стойност в кода или презаредете страницата.</i></p>
+        <h3>⚽ РЕЗУЛТАТ</h3>
+        <div>
+            <b>HOME:</b> 
+            <button class="btn-minus" onclick="change(-1, 0)">-1</button>
+            <button class="btn-plus" onclick="change(1, 0)">+1</button>
+        </div>
+        <div style="margin-top:10px;">
+            <b>AWAY:</b> 
+            <button class="btn-minus" onclick="change(0, -1)">-1</button>
+            <button class="btn-plus" onclick="change(0, 1)">+1</button>
+        </div>
     </div>
 
     <div class="card">
-        <h2>Таймер</h2>
-        <button class="btn-start" onclick="timer('start')">START</button>
-        <button class="btn-pause" onclick="timer('pause')">PAUSE</button>
-        <button class="btn-reset" onclick="timer('reset')">RESET</button>
+        <h3>⏱️ ТАЙМЕР</h3>
+        <button class="btn-blue" onclick="timer('start')">START</button>
+        <button style="background:#ffc107;" onclick="timer('pause')">PAUSE</button>
+        <button style="background:#dc3545; color:white;" onclick="timer('reset')">RESET</button>
+        <div style="margin-top:10px;">
+            <input type="number" id="setMins" placeholder="Минути (напр. 45)">
+            <button class="btn-blue" onclick="setManualTime()">Задай време</button>
+        </div>
     </div>
 
     <div class="card">
-        <h2>Имена на отбори</h2>
-        <input type="text" id="hNameInput" placeholder="Домакин">
-        <input type="text" id="aNameInput" placeholder="Гост">
-        <br>
-        <button onclick="updateNames()">Обнови имена</button>
+        <h3>🎨 ОТБОРИ И ЦВЕТОВЕ</h3>
+        <input type="text" id="hNameInput" placeholder="Име Домакин">
+        <input type="color" id="hColorInput" value="#ff0000"><br>
+        <input type="text" id="aNameInput" placeholder="Име Гост">
+        <input type="color" id="aColorInput" value="#0000ff"><br>
+        <button class="btn-plus" onclick="updateTeams()">Обнови всичко</button>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
-        let currentState = { home: 0, away: 0 };
-
-        socket.on('update', (data) => { 
-            currentState = data; 
-        });
+        let s = { home: 0, away: 0 };
+        socket.on('update', (data) => { s = data; });
 
         function change(h, a) {
-            socket.emit('changeScore', { 
-                home: currentState.home + h, 
-                away: currentState.away + a 
-            });
+            socket.emit('changeScore', { home: Math.max(0, s.home + h), away: Math.max(0, s.away + a) });
+        }
+        function timer(cmd) { socket.emit('controlTimer', cmd); }
+        
+        function setManualTime() {
+            const mins = document.getElementById('setMins').value;
+            if(mins !== "") socket.emit('setManualTime', mins);
         }
 
-        function timer(command) {
-            socket.emit('controlTimer', command);
-        }
-
-        function updateNames() {
-            const h = document.getElementById('hNameInput').value;
-            const a = document.getElementById('aNameInput').value;
+        function updateTeams() {
             socket.emit('changeScore', { 
-                homeName: h || currentState.homeName, 
-                awayName: a || currentState.awayName 
+                homeName: document.getElementById('hNameInput').value || s.homeName,
+                awayName: document.getElementById('aNameInput').value || s.awayName,
+                homeColor: document.getElementById('hColorInput').value,
+                awayColor: document.getElementById('aColorInput').value
             });
         }
     </script>
