@@ -46,8 +46,8 @@
         };
 
         socket.on('update', (data) => {
-            if (data.homeName) document.getElementById('homeName').innerText = data.homeName;
-            if (data.awayName) document.getElementById('awayName').innerText = data.awayName;
+            document.getElementById('homeName').style.color = data.homeColor;
+            document.getElementById('awayName').style.color = data.awayColor;
             document.getElementById('homeScore').innerText = data.home;
             document.getElementById('awayScore').innerText = data.away;
             document.getElementById('timer').innerText = formatTime(data.seconds);
