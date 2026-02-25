@@ -1,8 +1,21 @@
+<script>
+    const socket = io(); // Важно: трябва да имате тази линия преди останалите
 
-socket.on('update', (data) => {
-    document.getElementById('homeScore').innerText = data.home;
-    document.getElementById('awayScore').innerText = data.away;
-    document.getElementById('homeName').innerText = data.homeName;
-    document.getElementById('awayName').innerText = data.awayName;
-    document.getElementById('timer').innerText = formatTime(data.seconds);
-});
+    const formatTime = (s) => {
+        const mins = Math.floor(s / 60).toString().padStart(2, '0');
+        const secs = (s % 60).toString().padStart(2, '0');
+        return `${mins}:${secs}`;
+    };
+
+    socket.on('update', (data) => {
+        document.getElementById('homeScore').innerText = data.home;
+        document.getElementById('awayScore').innerText = data.away;
+        document.getElementById('homeName').innerText = data.homeName;
+        document.getElementById('awayName').innerText = data.awayName;
+        document.getElementById('timer').innerText = formatTime(data.seconds);
+    });
+
+    socket.on('timerUpdate', (seconds) => {
+        document.getElementById('timer').innerText = formatTime(seconds);
+    });
+</script>
