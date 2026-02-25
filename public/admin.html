@@ -1,0 +1,19 @@
+<h3>Настройка на отбори</h3>
+<input type="text" id="hNameInput" placeholder="Домакин">
+<input type="text" id="aNameInput" placeholder="Гост">
+<button onclick="updateNames()">Обнови имена</button>
+
+<script>
+    // ... съществуващият код за socket ...
+    
+    function updateNames() {
+        const h = document.getElementById('hNameInput').value;
+        const a = document.getElementById('aNameInput').value;
+        if(h || a) {
+            socket.emit('changeScore', { 
+                homeName: h || s.homeName, 
+                awayName: a || s.awayName 
+            });
+        }
+    }
+</script>
