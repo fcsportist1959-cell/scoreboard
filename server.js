@@ -4,7 +4,7 @@ const http = require('http').Server(app);
 const io = require('socket.io')(http);
 const path = require('path');
 
-const ADMIN_PASSWORD = "N@sp753z"; // <--- ПРОМЕНИ ТОВА
+const ADMIN_PASSWORD = "N@sp753z"; 
 
 // Защита на административния панел
 app.get('/admin.html', (req, res) => {
@@ -22,14 +22,15 @@ app.get('/admin.html', (req, res) => {
 
 app.use(express.static('public'));
 
-// ... останалата част от логиката за gameState и io.on остава същата ...
+// Глобално състояние на играта
 let gameState = { 
     home: 0, away: 0, 
     homeName: "HOME", awayName: "AWAY", 
-    homeColor: "#ff0000", awayColor: "#0000ff", // Цветове по подразбиране
+    homeColor: "#ff0000", awayColor: "#0000ff",
     seconds: 0, isRunning: false 
 };
 
+// Сървърен таймер
 setInterval(() => {
     if (gameState.isRunning) {
         gameState.seconds++;
@@ -38,12 +39,29 @@ setInterval(() => {
 }, 1000);
 
 io.on('connection', (socket) => {
+    // Изпращане на текущото състояние при свързване
+    socket.emit('update', gameState);
+
+    // Промяна на резултат, имена или цветове
+    socket.on('changeScore', (data) => {
+        gameState = { ...gameState, ...data };
+        io.emit('update', gameState);
+    });
+
+    // Управление на таймера (Start/Pause/Reset)
+    socket.on('controlTimer', (command) => {
+        if (command === 'start') gameState.isRunning = true;
+        if (command === 'pause') gameState.isRunning = false;
+        if (command === 'reset') { gameState.seconds = 0; gameState.isRunning = false; }
+        io.emit('update', gameState);
+    });
+
+    // Ръчно задаване на минути
     socket.on('setManualTime', (mins) => {
-    gameState.seconds = parseInt(mins) * 60;
-    io.emit('update', gameState);
-});
+        gameState.seconds = parseInt(mins) * 60;
+        io.emit('update', gameState);
+    });
 });
 
 const PORT = process.env.PORT || 3000;
 http.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
