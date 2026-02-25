@@ -1,19 +1,72 @@
-<h3>Настройка на отбори</h3>
-<input type="text" id="hNameInput" placeholder="Домакин">
-<input type="text" id="aNameInput" placeholder="Гост">
-<button onclick="updateNames()">Обнови имена</button>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scoreboard Admin</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #f0f0f0; text-align: center; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        button { padding: 15px 25px; font-size: 18px; cursor: pointer; margin: 5px; border-radius: 5px; border: none; }
+        .btn-goal { background: #28a745; color: white; }
+        .btn-start { background: #007bff; color: white; }
+        .btn-pause { background: #ffc107; }
+        .btn-reset { background: #dc3545; color: white; }
+        input { padding: 10px; font-size: 16px; margin: 5px; width: 150px; }
+    </style>
+</head>
+<body>
 
-<script>
-    // ... съществуващият код за socket ...
-    
-    function updateNames() {
-        const h = document.getElementById('hNameInput').value;
-        const a = document.getElementById('aNameInput').value;
-        if(h || a) {
+    <div class="card">
+        <h2>Резултат</h2>
+        <button class="btn-goal" onclick="change(1, 0)">+ Домакин (Home)</button>
+        <button class="btn-goal" onclick="change(0, 1)">+ Гост (Away)</button>
+        <p><i>За намаляване на резултат, използвайте бутони с отрицателна стойност в кода или презаредете страницата.</i></p>
+    </div>
+
+    <div class="card">
+        <h2>Таймер</h2>
+        <button class="btn-start" onclick="timer('start')">START</button>
+        <button class="btn-pause" onclick="timer('pause')">PAUSE</button>
+        <button class="btn-reset" onclick="timer('reset')">RESET</button>
+    </div>
+
+    <div class="card">
+        <h2>Имена на отбори</h2>
+        <input type="text" id="hNameInput" placeholder="Домакин">
+        <input type="text" id="aNameInput" placeholder="Гост">
+        <br>
+        <button onclick="updateNames()">Обнови имена</button>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        let currentState = { home: 0, away: 0 };
+
+        socket.on('update', (data) => { 
+            currentState = data; 
+        });
+
+        function change(h, a) {
             socket.emit('changeScore', { 
-                homeName: h || s.homeName, 
-                awayName: a || s.awayName 
+                home: currentState.home + h, 
+                away: currentState.away + a 
             });
         }
-    }
-</script>
+
+        function timer(command) {
+            socket.emit('controlTimer', command);
+        }
+
+        function updateNames() {
+            const h = document.getElementById('hNameInput').value;
+            const a = document.getElementById('aNameInput').value;
+            socket.emit('changeScore', { 
+                homeName: h || currentState.homeName, 
+                awayName: a || currentState.awayName 
+            });
+        }
+    </script>
+</body>
+</html>
