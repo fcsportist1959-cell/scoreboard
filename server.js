@@ -23,7 +23,12 @@ app.get('/admin.html', (req, res) => {
 app.use(express.static('public'));
 
 // ... останалата част от логиката за gameState и io.on остава същата ...
-let gameState = { home: 0, away: 0, homeName: "HOME", awayName: "AWAY", seconds: 0, isRunning: false };
+let gameState = { 
+    home: 0, away: 0, 
+    homeName: "HOME", awayName: "AWAY", 
+    homeColor: "#ff0000", awayColor: "#0000ff", // Цветове по подразбиране
+    seconds: 0, isRunning: false 
+};
 
 setInterval(() => {
     if (gameState.isRunning) {
@@ -33,17 +38,10 @@ setInterval(() => {
 }, 1000);
 
 io.on('connection', (socket) => {
-    socket.emit('update', gameState);
-    socket.on('changeScore', (data) => {
-        gameState = { ...gameState, ...data };
-        io.emit('update', gameState);
-    });
-    socket.on('controlTimer', (command) => {
-        if (command === 'start') gameState.isRunning = true;
-        if (command === 'pause') gameState.isRunning = false;
-        if (command === 'reset') { gameState.seconds = 0; gameState.isRunning = false; }
-        io.emit('update', gameState);
-    });
+    socket.on('setManualTime', (mins) => {
+    gameState.seconds = parseInt(mins) * 60;
+    io.emit('update', gameState);
+});
 });
 
 const PORT = process.env.PORT || 3000;
