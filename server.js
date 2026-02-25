@@ -1,83 +1,50 @@
-const express = require("express");
-const http = require("http");
-const { Server } = require("socket.io");
-
+const express = require('express');
 const app = express();
-const server = http.createServer(app);
-const io = new Server(server);
+const http = require('http').Server(app);
+const io = require('socket.io')(http);
+const path = require('path');
 
-app.use(express.static("public"));
+const ADMIN_PASSWORD = "N@sp753z"; // <--- ПРОМЕНИ ТОВА
 
-const CONTROL_KEY = "sportist1959@N";
+// Защита на административния панел
+app.get('/admin.html', (req, res) => {
+    const auth = { login: 'admin', password: ADMIN_PASSWORD };
+    const b64auth = (req.headers.authorization || '').split(' ')[1] || '';
+    const [login, password] = Buffer.from(b64auth, 'base64').toString().split(':');
 
-let gameState = {
-  teamA: "Sportist 1959",
-  teamB: "Гост",
-  scoreA: 0,
-  scoreB: 0,
-  time: 0,
-  running: false,
-  half: 1
-};
+    if (login && password && login === auth.login && password === auth.password) {
+        return res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+    }
 
-let interval = null;
+    res.set('WWW-Authenticate', 'Basic realm="401"');
+    res.status(401).send('Authentication required.');
+});
 
-function startTimer() {
-  if (interval) return;
-  gameState.running = true;
-  interval = setInterval(() => {
-    gameState.time++;
-    io.emit("update", gameState);
-  }, 1000);
-}
+app.use(express.static('public'));
 
-function stopTimer() {
-  gameState.running = false;
-  clearInterval(interval);
-  interval = null;
-}
+// ... останалата част от логиката за gameState и io.on остава същата ...
+let gameState = { home: 0, away: 0, homeName: "HOME", awayName: "AWAY", seconds: 0, isRunning: false };
 
-io.on("connection", (socket) => {
+setInterval(() => {
+    if (gameState.isRunning) {
+        gameState.seconds++;
+        io.emit('timerUpdate', gameState.seconds);
+    }
+}, 1000);
 
-  socket.on("auth", (key) => {
-    if (key !== CONTROL_KEY) socket.disconnect();
-  });
-
-  socket.emit("update", gameState);
-
-  socket.on("goalA", () => {
-    gameState.scoreA++;
-    io.emit("goal");
-    io.emit("update", gameState);
-  });
-
-  socket.on("goalB", () => {
-    gameState.scoreB++;
-    io.emit("goal");
-    io.emit("update", gameState);
-  });
-
-  socket.on("start", startTimer);
-  socket.on("stop", stopTimer);
-
-  socket.on("nextHalf", () => {
-    gameState.half = 2;
-    gameState.time = 0;
-    io.emit("update", gameState);
-  });
-
-  socket.on("reset", () => {
-    gameState = {
-      ...gameState,
-      scoreA: 0,
-      scoreB: 0,
-      time: 0,
-      half: 1
-    };
-    io.emit("update", gameState);
-  });
-
+io.on('connection', (socket) => {
+    socket.emit('update', gameState);
+    socket.on('changeScore', (data) => {
+        gameState = { ...gameState, ...data };
+        io.emit('update', gameState);
+    });
+    socket.on('controlTimer', (command) => {
+        if (command === 'start') gameState.isRunning = true;
+        if (command === 'pause') gameState.isRunning = false;
+        if (command === 'reset') { gameState.seconds = 0; gameState.isRunning = false; }
+        io.emit('update', gameState);
+    });
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT);
+http.listen(PORT, () => console.log(`Server running` bits));
