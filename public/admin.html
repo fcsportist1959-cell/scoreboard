@@ -3,26 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Scoreboard</title>
     <style>
         body { font-family: sans-serif; padding: 15px; background: #f4f4f4; text-align: center; }
-        .card { background: white; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #ddd; }
-        button { padding: 12px; font-size: 16px; margin: 3px; border-radius: 5px; border: none; cursor: pointer; min-width: 60px; }
+        .card { background: white; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #ddd; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        button { padding: 12px; font-size: 16px; margin: 3px; border-radius: 5px; border: none; cursor: pointer; min-width: 60px; font-weight: bold; }
         .btn-plus { background: #28a745; color: white; }
         .btn-minus { background: #6c757d; color: white; }
         .btn-blue { background: #007bff; color: white; }
-        input[type="text"], input[type="number"] { padding: 10px; margin: 5px; width: 120px; border: 1px solid #ccc; }
+        .btn-update { background: #28a745; color: white; width: 100%; margin-top: 10px; padding: 15px; font-size: 18px; }
+        input[type="text"], input[type="number"] { padding: 10px; margin: 5px; width: 130px; border: 1px solid #ccc; border-radius: 4px; }
+        .score-display { font-size: 24px; font-weight: bold; margin: 10px 0; color: #333; }
+        .team-row { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 5px; }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <h3>⚽ РЕЗУЛТАТ</h3>
-        <div>
+        <h3>⚽ ТЕКУЩ РЕЗУЛТАТ</h3>
+        <div class="score-display">
+            <span id="hDisplay">0</span> : <span id="aDisplay">0</span>
+        </div>
+        <div class="team-row">
             <b>HOME:</b> 
             <button class="btn-minus" onclick="change(-1, 0)">-1</button>
             <button class="btn-plus" onclick="change(1, 0)">+1</button>
         </div>
-        <div style="margin-top:10px;">
+        <div class="team-row">
             <b>AWAY:</b> 
             <button class="btn-minus" onclick="change(0, -1)">-1</button>
             <button class="btn-plus" onclick="change(0, 1)">+1</button>
@@ -35,29 +42,71 @@
         <button style="background:#ffc107;" onclick="timer('pause')">PAUSE</button>
         <button style="background:#dc3545; color:white;" onclick="timer('reset')">RESET</button>
         <div style="margin-top:10px;">
-            <input type="number" id="setMins" placeholder="Минути (напр. 45)">
+            <input type="number" id="setMins" placeholder="Мин (напр. 45)">
             <button class="btn-blue" onclick="setManualTime()">Задай време</button>
         </div>
     </div>
 
     <div class="card">
-        <h3>🎨 ОТБОРИ И ЦВЕТОВЕ</h3>
-        <input type="text" id="hNameInput" placeholder="Име Домакин">
-        <input type="color" id="hColorInput" value="#ff0000"><br>
-        <input type="text" id="aNameInput" placeholder="Име Гост">
-        <input type="color" id="aColorInput" value="#0000ff"><br>
-        <button class="btn-plus" onclick="updateTeams()">Обнови всичко</button>
+        <h3>🎨 НАСТРОЙКИ ОТБОРИ</h3>
+        <div style="margin-bottom: 10px;">
+            <input type="text" id="hNameInput" placeholder="Име Домакин" oninput="saveToLocal()">
+            <input type="color" id="hColorInput" value="#ff0000" onchange="saveToLocal()"><br>
+            <input type="text" id="aNameInput" placeholder="Име Гост" oninput="saveToLocal()">
+            <input type="color" id="aColorInput" value="#0000ff" onchange="saveToLocal()">
+        </div>
+        <button class="btn-update" onclick="updateEverything()">🔄 ОБНОВИ ВСИЧКО</button>
+        <small style="color: #666; display: block; margin-top: 5px;">Възстановява имена и резултат след заспиване</small>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
-        let s = { home: 0, away: 0 };
-        socket.on('update', (data) => { s = data; });
+        let s = { home: 0, away: 0, homeName: "", awayName: "" };
+
+        // При получаване на данни от сървъра
+        socket.on('update', (data) => { 
+            s = data; 
+            document.getElementById('hDisplay').innerText = data.home;
+            document.getElementById('aDisplay').innerText = data.away;
+            saveToLocal(); // Автоматично запазваме актуалния резултат
+        });
+
+        // Функция за запазване в браузъра (localStorage)
+        function saveToLocal() {
+            const dataToSave = {
+                hName: document.getElementById('hNameInput').value,
+                aName: document.getElementById('aNameInput').value,
+                hColor: document.getElementById('hColorInput').value,
+                aColor: document.getElementById('aColorInput').value,
+                home: s.home,
+                away: s.away
+            };
+            localStorage.setItem('scoreboardCache', JSON.stringify(dataToSave));
+        }
+
+        // Зареждане на данните при отваряне на страницата
+        window.onload = function() {
+            const saved = localStorage.getItem('scoreboardCache');
+            if (saved) {
+                const data = JSON.parse(saved);
+                document.getElementById('hNameInput').value = data.hName || "";
+                document.getElementById('aNameInput').value = data.aName || "";
+                document.getElementById('hColorInput').value = data.hColor || "#ff0000";
+                document.getElementById('aColorInput').value = data.aColor || "#0000ff";
+                s.home = data.home || 0;
+                s.away = data.away || 0;
+                document.getElementById('hDisplay').innerText = s.home;
+                document.getElementById('aDisplay').innerText = s.away;
+            }
+        };
 
         function change(h, a) {
-            socket.emit('changeScore', { home: Math.max(0, s.home + h), away: Math.max(0, s.away + a) });
+            const newHome = Math.max(0, s.home + h);
+            const newAway = Math.max(0, s.away + a);
+            socket.emit('changeScore', { home: newHome, away: newAway });
         }
+
         function timer(cmd) { socket.emit('controlTimer', cmd); }
         
         function setManualTime() {
@@ -65,13 +114,18 @@
             if(mins !== "") socket.emit('setManualTime', mins);
         }
 
-        function updateTeams() {
+        // Основната функция за възстановяване
+        function updateEverything() {
+            saveToLocal();
             socket.emit('changeScore', { 
-                homeName: document.getElementById('hNameInput').value || s.homeName,
-                awayName: document.getElementById('aNameInput').value || s.awayName,
+                homeName: document.getElementById('hNameInput').value,
+                awayName: document.getElementById('aNameInput').value,
                 homeColor: document.getElementById('hColorInput').value,
-                awayColor: document.getElementById('aColorInput').value
+                awayColor: document.getElementById('aColorInput').value,
+                home: s.home,
+                away: s.away
             });
+            alert("Данните са изпратени успешно!");
         }
     </script>
 </body>
