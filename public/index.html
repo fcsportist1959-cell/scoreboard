@@ -18,6 +18,10 @@
             border-radius: 10px; 
             width: fit-content;
             border: 2px solid #555;
+            
+            /* ПРОПОРЦИОНАЛНО НАМАЛЯВАНЕ */
+            transform: scale(0.8); /* Стойност 1.0 е оригиналният размер. 0.8 го намалява с 20%. */
+            transform-origin: top left; /* Гарантира, че таблото остава в горния ляв ъгъл */
         }
         .timer { font-size: 30px; color: #00ff00; margin-right: 20px; font-family: monospace; }
         .team-name { 
@@ -27,7 +31,7 @@
             padding: 5px 15px;
             border-radius: 5px;
             transition: all 0.3s;
-            display: inline-block; /* Гарантира, че фонът обгръща текста правилно */
+            display: inline-block;
         }
         .score { font-size: 36px; font-weight: bold; color: #ffcc00; margin: 0 15px; min-width: 30px; text-align: center; }
     </style>
@@ -53,10 +57,12 @@
             return `${mins}:${secs}`;
         };
 
-        // Функцията за контраст трябва да е дефинирана тук
         function getContrastYIQ(hexcolor){
             if (!hexcolor) return 'white';
             hexcolor = hexcolor.replace("#", "");
+            if (hexcolor.length === 3) {
+                hexcolor = hexcolor.split('').map(c => c + c).join('');
+            }
             var r = parseInt(hexcolor.substr(0,2),16);
             var g = parseInt(hexcolor.substr(2,2),16);
             var b = parseInt(hexcolor.substr(4,2),16);
@@ -68,11 +74,9 @@
             const homeEl = document.getElementById('homeName');
             const awayEl = document.getElementById('awayName');
 
-            // 1. Промяна на ИМЕНАТА
             homeEl.innerText = data.homeName;
             awayEl.innerText = data.awayName;
 
-            // 2. Промяна на ЦВЕТА НА ОСНОВАТА (backgroundColor)
             if (data.homeColor) {
                 homeEl.style.backgroundColor = data.homeColor;
                 homeEl.style.color = getContrastYIQ(data.homeColor);
@@ -82,7 +86,6 @@
                 awayEl.style.color = getContrastYIQ(data.awayColor);
             }
 
-            // 3. Обновяване на резултата и времето
             document.getElementById('homeScore').innerText = data.home;
             document.getElementById('awayScore').innerText = data.away;
             document.getElementById('timer').innerText = formatTime(data.seconds);
