@@ -10,7 +10,7 @@
         
         /* Статус лента */
         .status-bar { display: flex; justify-content: space-between; align-items: center; background: #333; color: white; padding: 10px 15px; border-radius: 10px; margin-bottom: 15px; font-weight: bold; }
-        #live-clock { font-size: 1.2em; color: #00ff00; }
+        #live-clock { font-size: 1.4em; color: #00ff00; font-family: monospace; }
         .connection-dot { height: 10px; width: 10px; background-color: #28a745; border-radius: 50%; display: inline-block; margin-right: 5px; }
         .reloading-msg { font-size: 10px; color: #ffc107; display: block; }
 
@@ -30,9 +30,10 @@
         <span>
             <span class="connection-dot" id="statusDot"></span> 
             <span id="statusText">ONLINE</span>
-            <span id="reloadingText" class="reloading-msg" style="display:none;">Опит за събуждане...</span>
+            <span id="reloadingText" class="reloading-msg" style="display:none;">Сървърът спи. Рестартиране...</span>
         </span>
-        <span id="live-clock">00:00:00</span>
+        <!-- Тук вече ще се показва времето от мача -->
+        <span id="live-clock">00:00</span>
     </div>
 
     <div class="card">
@@ -81,12 +82,15 @@
         let s = { home: 0, away: 0 };
         let reloadTimer = null;
 
-        // Локален часовник
-        function updateClock() {
-            const now = new Date();
-            document.getElementById('live-clock').innerText = now.toLocaleTimeString('bg-BG');
-        }
-        setInterval(updateClock, 1000);
+        // При получаване на данни за времето от сървъра
+        socket.on('timerUpdate', (data) => {
+            // Форматираме секундите в ММ:СС
+            const mins = Math.floor(data.seconds / 60);
+            const secs = data.seconds % 60;
+            document.getElementById('live-clock').innerText = 
+                mins.toString().padStart(2, '0') + ":" + 
+                secs.toString().padStart(2, '0');
+        });
 
         // Логика за статус и автоматично презареждане
         socket.on('connect', () => {
@@ -101,7 +105,7 @@
             document.getElementById('statusText').innerText = 'OFFLINE';
             document.getElementById('reloadingText').style.display = 'block';
 
-            // Ако след 10 секунди все още няма връзка, презареди страницата
+            // Презарежда след 10 сек, за да събуди Render
             reloadTimer = setTimeout(() => {
                 location.reload();
             }, 10000);
@@ -127,7 +131,6 @@
         }
 
         window.onload = function() {
-            updateClock();
             const saved = localStorage.getItem('scoreboardCache');
             if (saved) {
                 const data = JSON.parse(saved);
@@ -165,7 +168,7 @@
                 home: s.home,
                 away: s.away
             });
-            alert("Данните са изпратени към сървъра!");
+            alert("Данните са изпратени!");
         }
     </script>
 </body>
