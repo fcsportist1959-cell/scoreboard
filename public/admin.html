@@ -4,18 +4,17 @@
         let s = { home: 0, away: 0, homeRedCards: 0, awayRedCards: 0 };
         let reloadTimer = null;
 
-        // Помощна функция за форматиране на времето
         function formatAdminTime(totalSeconds) {
-            if (isNaN(totalSeconds)) return "00:00";
+            if (totalSeconds === undefined || totalSeconds === null || isNaN(totalSeconds)) return "00:00";
             const mins = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
             const secs = (totalSeconds % 60).toString().padStart(2, '0');
             return `${mins}:${secs}`;
         }
 
-        // СЛУШАТЕЛ ЗА ЧАСОВНИКА (Обновява само цифрите горе)
         socket.on('timerUpdate', (data) => {
             const seconds = (typeof data === 'object') ? data.seconds : data;
-            document.getElementById('live-clock').innerText = formatAdminTime(seconds);
+            const timerEl = document.getElementById('live-clock');
+            if (timerEl) timerEl.innerText = formatAdminTime(seconds);
         });
 
         socket.on('connect', () => {
@@ -32,10 +31,9 @@
             reloadTimer = setTimeout(() => { location.reload(); }, 10000);
         });
 
-        // ОСНОВЕН ЪПДЕЙТ (Обновява всичко останало)
         socket.on('update', (data) => { 
-            s.home = data.home;
-            s.away = data.away;
+            s.home = data.home || 0;
+            s.away = data.away || 0;
             s.homeRedCards = data.homeRedCards || 0;
             s.awayRedCards = data.awayRedCards || 0;
             
@@ -44,7 +42,6 @@
             document.getElementById('hRedDisplay').innerText = s.homeRedCards;
             document.getElementById('aRedDisplay').innerText = s.awayRedCards;
             
-            // Сверяваме и часовника тук, за да не се нулира при промени
             if (data.seconds !== undefined) {
                 document.getElementById('live-clock').innerText = formatAdminTime(data.seconds);
             }
@@ -108,6 +105,11 @@
                 document.getElementById('aNameInput').value = data.aName || "";
                 document.getElementById('hColorInput').value = data.hColor || "#ff0000";
                 document.getElementById('aColorInput').value = data.aColor || "#0000ff";
+                // Коректно възстановяване на локалните данни
+                s.home = data.home || 0;
+                s.away = data.away || 0;
+                s.homeRedCards = data.homeRedCards || 0;
+                s.awayRedCards = data.awayRedCards || 0;
             }
         };
     </script>
