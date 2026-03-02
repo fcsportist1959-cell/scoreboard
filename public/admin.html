@@ -7,13 +7,10 @@
     <style>
         body { font-family: sans-serif; padding: 15px; background: #f4f4f4; text-align: center; }
         .card { background: white; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #ddd; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        
-        /* Статус лента */
         .status-bar { display: flex; justify-content: space-between; align-items: center; background: #333; color: white; padding: 10px 15px; border-radius: 10px; margin-bottom: 15px; font-weight: bold; }
         #live-clock { font-size: 1.4em; color: #00ff00; font-family: monospace; }
         .connection-dot { height: 10px; width: 10px; background-color: #28a745; border-radius: 50%; display: inline-block; margin-right: 5px; }
         .reloading-msg { font-size: 10px; color: #ffc107; display: block; }
-
         button { padding: 12px; font-size: 16px; margin: 3px; border-radius: 5px; border: none; cursor: pointer; min-width: 60px; font-weight: bold; }
         .btn-plus { background: #28a745; color: white; }
         .btn-minus { background: #6c757d; color: white; }
@@ -32,7 +29,6 @@
             <span id="statusText">ONLINE</span>
             <span id="reloadingText" class="reloading-msg" style="display:none;">Сървърът спи. Рестартиране...</span>
         </span>
-        <!-- Тук вече ще се показва времето от мача -->
         <span id="live-clock">00:00</span>
     </div>
 
@@ -82,17 +78,22 @@
         let s = { home: 0, away: 0 };
         let reloadTimer = null;
 
-        // При получаване на данни за времето от сървъра
+        // Поправена логика за времето
         socket.on('timerUpdate', (data) => {
-            // Форматираме секундите в ММ:СС
-            const mins = Math.floor(data.seconds / 60);
-            const secs = data.seconds % 60;
-            document.getElementById('live-clock').innerText = 
-                mins.toString().padStart(2, '0') + ":" + 
-                secs.toString().padStart(2, '0');
+            let totalSeconds = 0;
+            if (typeof data === 'number') totalSeconds = data;
+            else if (data && typeof data.seconds !== 'undefined') totalSeconds = data.seconds;
+            else if (typeof data === 'string') totalSeconds = parseInt(data);
+
+            if (!isNaN(totalSeconds)) {
+                const mins = Math.floor(totalSeconds / 60);
+                const secs = totalSeconds % 60;
+                document.getElementById('live-clock').innerText = 
+                    mins.toString().padStart(2, '0') + ":" + 
+                    secs.toString().padStart(2, '0');
+            }
         });
 
-        // Логика за статус и автоматично презареждане
         socket.on('connect', () => {
             clearTimeout(reloadTimer);
             document.getElementById('statusDot').style.backgroundColor = '#28a745';
@@ -104,11 +105,7 @@
             document.getElementById('statusDot').style.backgroundColor = '#dc3545';
             document.getElementById('statusText').innerText = 'OFFLINE';
             document.getElementById('reloadingText').style.display = 'block';
-
-            // Презарежда след 10 сек, за да събуди Render
-            reloadTimer = setTimeout(() => {
-                location.reload();
-            }, 10000);
+            reloadTimer = setTimeout(() => { location.reload(); }, 10000);
         });
 
         socket.on('update', (data) => { 
@@ -152,7 +149,6 @@
         }
 
         function timer(cmd) { socket.emit('controlTimer', cmd); }
-        
         function setManualTime() {
             const mins = document.getElementById('setMins').value;
             if(mins !== "") socket.emit('setManualTime', mins);
