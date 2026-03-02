@@ -6,65 +6,56 @@ const path = require('path');
 
 const ADMIN_PASSWORD = "N@sp753z"; 
 
-// Защита на административния панел
 app.get('/admin.html', (req, res) => {
     const auth = { login: 'admin', password: ADMIN_PASSWORD };
     const b64auth = (req.headers.authorization || '').split(' ')[1] || '';
     const [login, password] = Buffer.from(b64auth, 'base64').toString().split(':');
-
     if (login && password && login === auth.login && password === auth.password) {
         return res.sendFile(path.join(__dirname, 'public', 'admin.html'));
     }
-
     res.set('WWW-Authenticate', 'Basic realm="401"');
     res.status(401).send('Authentication required.');
 });
 
 app.use(express.static('public'));
 
-// Глобално състояние на играта (ДОБАВЕНИ КАРТОНИ)
 let gameState = { 
     home: 0, away: 0, 
     homeName: "HOME", awayName: "AWAY", 
     homeColor: "#ff0000", awayColor: "#0000ff",
-    homeRedCards: 0, awayRedCards: 0, // Нови полета
+    homeRedCards: 0, awayRedCards: 0, 
     seconds: 0, isRunning: false 
 };
 
-// Сървърен таймер
+// Сървърен таймер - Коригиран за по-добра синхронизация
 setInterval(() => {
     if (gameState.isRunning) {
         gameState.seconds++;
-        // Изпращаме само секундите за по-добра производителност
-        io.emit('timerUpdate', { seconds: gameState.seconds });
+        // Изпращаме целия обект, за да не се губи синхронизацията в браузъра
+        io.emit('update', gameState); 
     }
 }, 1000);
 
 io.on('connection', (socket) => {
-    // Изпращане на текущото състояние при свързване
     socket.emit('update', gameState);
 
-    // Промяна на резултат, имена, цветове И КАРТОНИ
     socket.on('changeScore', (data) => {
-        // Използваме Object.assign или spread, за да запазим текущите данни и да обновим само новите
         gameState = { ...gameState, ...data };
         io.emit('update', gameState);
     });
 
-    // Управление на таймера (Start/Pause/Reset)
     socket.on('controlTimer', (command) => {
         if (command === 'start') gameState.isRunning = true;
         if (command === 'pause') gameState.isRunning = false;
         if (command === 'reset') { 
             gameState.seconds = 0; 
             gameState.isRunning = false; 
-            gameState.homeRedCards = 0; // Нулиране на картоните при нов мач
+            gameState.homeRedCards = 0;
             gameState.awayRedCards = 0;
         }
         io.emit('update', gameState);
     });
 
-    // Ръчно задаване на минути
     socket.on('setManualTime', (mins) => {
         gameState.seconds = parseInt(mins) * 60;
         io.emit('update', gameState);
