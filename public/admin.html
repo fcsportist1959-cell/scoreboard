@@ -7,6 +7,13 @@
     <style>
         body { font-family: sans-serif; padding: 15px; background: #f4f4f4; text-align: center; }
         .card { background: white; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #ddd; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        
+        /* Статус лента */
+        .status-bar { display: flex; justify-content: space-between; align-items: center; background: #333; color: white; padding: 10px 15px; border-radius: 10px; margin-bottom: 15px; font-weight: bold; }
+        #live-clock { font-size: 1.2em; color: #00ff00; }
+        .connection-dot { height: 10px; width: 10px; background-color: #28a745; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        .reloading-msg { font-size: 10px; color: #ffc107; display: block; }
+
         button { padding: 12px; font-size: 16px; margin: 3px; border-radius: 5px; border: none; cursor: pointer; min-width: 60px; font-weight: bold; }
         .btn-plus { background: #28a745; color: white; }
         .btn-minus { background: #6c757d; color: white; }
@@ -18,6 +25,15 @@
     </style>
 </head>
 <body>
+
+    <div class="status-bar">
+        <span>
+            <span class="connection-dot" id="statusDot"></span> 
+            <span id="statusText">ONLINE</span>
+            <span id="reloadingText" class="reloading-msg" style="display:none;">Опит за събуждане...</span>
+        </span>
+        <span id="live-clock">00:00:00</span>
+    </div>
 
     <div class="card">
         <h3>⚽ ТЕКУЩ РЕЗУЛТАТ</h3>
@@ -42,7 +58,7 @@
         <button style="background:#ffc107;" onclick="timer('pause')">PAUSE</button>
         <button style="background:#dc3545; color:white;" onclick="timer('reset')">RESET</button>
         <div style="margin-top:10px;">
-            <input type="number" id="setMins" placeholder="Мин (напр. 45)">
+            <input type="number" id="setMins" placeholder="Мин">
             <button class="btn-blue" onclick="setManualTime()">Задай време</button>
         </div>
     </div>
@@ -56,23 +72,48 @@
             <input type="color" id="aColorInput" value="#0000ff" onchange="saveToLocal()">
         </div>
         <button class="btn-update" onclick="updateEverything()">🔄 ОБНОВИ ВСИЧКО</button>
-        <small style="color: #666; display: block; margin-top: 5px;">Възстановява имена и резултат след заспиване</small>
+        <small style="color: #666; display: block; margin-top: 5px;">Възстановява данните след заспиване</small>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
-        let s = { home: 0, away: 0, homeName: "", awayName: "" };
+        let s = { home: 0, away: 0 };
+        let reloadTimer = null;
 
-        // При получаване на данни от сървъра
+        // Локален часовник
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('live-clock').innerText = now.toLocaleTimeString('bg-BG');
+        }
+        setInterval(updateClock, 1000);
+
+        // Логика за статус и автоматично презареждане
+        socket.on('connect', () => {
+            clearTimeout(reloadTimer);
+            document.getElementById('statusDot').style.backgroundColor = '#28a745';
+            document.getElementById('statusText').innerText = 'ONLINE';
+            document.getElementById('reloadingText').style.display = 'none';
+        });
+
+        socket.on('disconnect', () => {
+            document.getElementById('statusDot').style.backgroundColor = '#dc3545';
+            document.getElementById('statusText').innerText = 'OFFLINE';
+            document.getElementById('reloadingText').style.display = 'block';
+
+            // Ако след 10 секунди все още няма връзка, презареди страницата
+            reloadTimer = setTimeout(() => {
+                location.reload();
+            }, 10000);
+        });
+
         socket.on('update', (data) => { 
             s = data; 
             document.getElementById('hDisplay').innerText = data.home;
             document.getElementById('aDisplay').innerText = data.away;
-            saveToLocal(); // Автоматично запазваме актуалния резултат
+            saveToLocal();
         });
 
-        // Функция за запазване в браузъра (localStorage)
         function saveToLocal() {
             const dataToSave = {
                 hName: document.getElementById('hNameInput').value,
@@ -85,8 +126,8 @@
             localStorage.setItem('scoreboardCache', JSON.stringify(dataToSave));
         }
 
-        // Зареждане на данните при отваряне на страницата
         window.onload = function() {
+            updateClock();
             const saved = localStorage.getItem('scoreboardCache');
             if (saved) {
                 const data = JSON.parse(saved);
@@ -114,7 +155,6 @@
             if(mins !== "") socket.emit('setManualTime', mins);
         }
 
-        // Основната функция за възстановяване
         function updateEverything() {
             saveToLocal();
             socket.emit('changeScore', { 
@@ -125,7 +165,7 @@
                 home: s.home,
                 away: s.away
             });
-            alert("Данните са изпратени успешно!");
+            alert("Данните са изпратени към сървъра!");
         }
     </script>
 </body>
