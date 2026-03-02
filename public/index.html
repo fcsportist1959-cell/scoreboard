@@ -33,7 +33,6 @@
             min-width: 65px;
         }
 
-        /* Контейнер за име + картони */
         .team-block {
             display: flex;
             flex-direction: column;
@@ -51,18 +50,23 @@
             transition: background 0.5s, color 0.5s;
         }
 
-        /* Дизайн на червените картони */
+        /* КОРЕКЦИЯ: Лентата се скрива автоматично, когато е празна */
         .red-cards-container {
             display: flex;
             gap: 3px;
-            height: 8px;
+            height: 10px; /* Фиксирана височина, за да не "подскача" таблото */
         }
+        .red-cards-container:empty {
+            display: none; /* Скрива се напълно, ако няма картони */
+        }
+
         .red-card-icon {
-            width: 6px;
-            height: 10px;
+            width: 7px;
+            height: 11px;
             background-color: #ff0000;
             border-radius: 1px;
             box-shadow: 0 0 5px rgba(255, 0, 0, 0.8);
+            border: 1px solid rgba(255,255,255,0.2);
         }
 
         .score-container {
@@ -83,7 +87,6 @@
             display: inline-block;
         }
 
-        /* Анимация при гол */
         .score-pop {
             transform: scale(1.4);
             color: #ffffff !important;
@@ -97,7 +100,6 @@
     <div class="scoreboard">
         <div id="timer" class="timer">00:00</div>
         
-        <!-- HOME TEAM -->
         <div class="team-block">
             <div id="homeName" class="team-name">HOME</div>
             <div id="homeCards" class="red-cards-container"></div>
@@ -109,7 +111,6 @@
             <div id="awayScore" class="score">0</div>
         </div>
         
-        <!-- AWAY TEAM -->
         <div class="team-block">
             <div id="awayName" class="team-name">AWAY</div>
             <div id="awayCards" class="red-cards-container"></div>
@@ -122,7 +123,7 @@
         let lastScore = { home: 0, away: 0 };
         
         const formatTime = (s) => {
-            if (isNaN(s) || s === null) return "00:00";
+            if (s === undefined || s === null) return "00:00";
             const mins = Math.floor(s / 60).toString().padStart(2, '0');
             const secs = (s % 60).toString().padStart(2, '0');
             return `${mins}:${secs}`;
@@ -130,11 +131,13 @@
 
         function updateRedCards(elementId, count) {
             const container = document.getElementById(elementId);
-            container.innerHTML = '';
-            for (let i = 0; i < count; i++) {
-                const card = document.createElement('div');
-                card.className = 'red-card-icon';
-                container.appendChild(card);
+            container.innerHTML = ''; // Изчиства всичко
+            if (count > 0) {
+                for (let i = 0; i < count; i++) {
+                    const card = document.createElement('div');
+                    card.className = 'red-card-icon';
+                    container.appendChild(card);
+                }
             }
         }
 
@@ -155,48 +158,38 @@
         }
 
         socket.on('update', (data) => {
-            const hName = document.getElementById('homeName');
-            const aName = document.getElementById('awayName');
+            document.getElementById('homeName').innerText = data.homeName;
+            document.getElementById('awayName').innerText = data.awayName;
+            
             const hScoreEl = document.getElementById('homeScore');
             const aScoreEl = document.getElementById('awayScore');
 
-            // Имена и цветове
-            hName.innerText = data.homeName || "HOME";
-            aName.innerText = data.awayName || "AWAY";
             if (data.homeColor) {
-                hName.style.backgroundColor = data.homeColor;
-                hName.style.color = getContrastYIQ(data.homeColor);
+                document.getElementById('homeName').style.backgroundColor = data.homeColor;
+                document.getElementById('homeName').style.color = getContrastYIQ(data.homeColor);
             }
             if (data.awayColor) {
-                aName.style.backgroundColor = data.awayColor;
-                aName.style.color = getContrastYIQ(data.awayColor);
+                document.getElementById('awayName').style.backgroundColor = data.awayColor;
+                document.getElementById('awayName').style.color = getContrastYIQ(data.awayColor);
             }
 
-            // Анимация при промяна на резултата
-            if (data.home !== lastScore.home) {
-                animateScore(hScoreEl);
-                lastScore.home = data.home;
-            }
-            if (data.away !== lastScore.away) {
-                animateScore(aScoreEl);
-                lastScore.away = data.away;
-            }
+            if (data.home !== lastScore.home) { animateScore(hScoreEl); lastScore.home = data.home; }
+            if (data.away !== lastScore.away) { animateScore(aScoreEl); lastScore.away = data.away; }
 
             hScoreEl.innerText = data.home;
             aScoreEl.innerText = data.away;
 
-            // Време
-            if (data.seconds !== undefined) {
-                document.getElementById('timer').innerText = formatTime(data.seconds);
-            }
+            // КОРЕКЦИЯ: Директно обновяване на времето от основния пакет
+            document.getElementById('timer').innerText = formatTime(data.seconds);
 
-            // Червени картони
-            updateRedCards('homeCards', data.homeRedCards || 0);
-            updateRedCards('awayCards', data.awayRedCards || 0);
+            updateRedCards('homeCards', data.homeRedCards);
+            updateRedCards('awayCards', data.awayRedCards);
         });
 
-        socket.on('timerUpdate', (seconds) => {
-            document.getElementById('timer').innerText = formatTime(seconds);
+        // КОРЕКЦИЯ: Приемаме обекта и взимаме само числото
+        socket.on('timerUpdate', (data) => {
+            const sec = typeof data === 'object' ? data.seconds : data;
+            document.getElementById('timer').innerText = formatTime(sec);
         });
     </script>
 </body>
