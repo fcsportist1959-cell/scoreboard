@@ -1,112 +1,21 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - Scoreboard</title>
-    <style>
-        body { font-family: sans-serif; padding: 15px; background: #f4f4f4; text-align: center; }
-        .card { background: white; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #ddd; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .status-bar { display: flex; justify-content: space-between; align-items: center; background: #333; color: white; padding: 10px 15px; border-radius: 10px; margin-bottom: 15px; font-weight: bold; }
-        #live-clock { font-size: 1.4em; color: #00ff00; font-family: monospace; }
-        .connection-dot { height: 10px; width: 10px; background-color: #28a745; border-radius: 50%; display: inline-block; margin-right: 5px; }
-        .reloading-msg { font-size: 10px; color: #ffc107; display: block; }
-        button { padding: 12px; font-size: 16px; margin: 3px; border-radius: 5px; border: none; cursor: pointer; min-width: 60px; font-weight: bold; }
-        .btn-plus { background: #28a745; color: white; }
-        .btn-minus { background: #6c757d; color: white; }
-        .btn-red-card { background: #dc3545; color: white; padding: 5px 10px; min-width: 40px; font-size: 14px; }
-        .btn-blue { background: #007bff; color: white; }
-        .btn-update { background: #28a745; color: white; width: 100%; margin-top: 10px; padding: 15px; font-size: 18px; }
-        input[type="text"], input[type="number"] { padding: 10px; margin: 5px; width: 130px; border: 1px solid #ccc; border-radius: 4px; }
-        .score-display { font-size: 24px; font-weight: bold; margin: 10px 0; color: #333; }
-        .team-row { display: flex; flex-direction: column; align-items: center; margin-bottom: 15px; padding: 10px; border-bottom: 1px dashed #ccc; }
-        .controls { display: flex; align-items: center; gap: 10px; }
-        .cards-row { margin-top: 5px; font-size: 14px; color: #dc3545; font-weight: bold; }
-    </style>
-</head>
-<body>
-
-    <div class="status-bar">
-        <span>
-            <span class="connection-dot" id="statusDot"></span> 
-            <span id="statusText">ONLINE</span>
-            <span id="reloadingText" class="reloading-msg" style="display:none;">Сървърът спи. Рестартиране...</span>
-        </span>
-        <span id="live-clock">00:00</span>
-    </div>
-
-    <div class="card">
-        <h3>⚽ ТЕКУЩ РЕЗУЛТАТ</h3>
-        <div class="score-display">
-            <span id="hDisplay">0</span> : <span id="aDisplay">0</span>
-        </div>
-        
-        <div class="team-row">
-            <b>HOME</b> 
-            <div class="controls">
-                <button class="btn-minus" onclick="change(-1, 0)">-1</button>
-                <button class="btn-plus" onclick="change(1, 0)">+1</button>
-            </div>
-            <div class="cards-row">
-                🟥 Червени картони: <span id="hRedDisplay">0</span>
-                <button class="btn-red-card" onclick="changeRed('home', -1)">-</button>
-                <button class="btn-red-card" onclick="changeRed('home', 1)">+</button>
-            </div>
-        </div>
-
-        <div class="team-row">
-            <b>AWAY</b> 
-            <div class="controls">
-                <button class="btn-minus" onclick="change(0, -1)">-1</button>
-                <button class="btn-plus" onclick="change(0, 1)">+1</button>
-            </div>
-            <div class="cards-row">
-                🟥 Червени картони: <span id="aRedDisplay">0</span>
-                <button class="btn-red-card" onclick="changeRed('away', -1)">-</button>
-                <button class="btn-red-card" onclick="changeRed('away', 1)">+</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="card">
-        <h3>⏱️ ТАЙМЕР</h3>
-        <button class="btn-blue" onclick="timer('start')">START</button>
-        <button style="background:#ffc107;" onclick="timer('pause')">PAUSE</button>
-        <button style="background:#dc3545; color:white;" onclick="timer('reset')">RESET</button>
-        <div style="margin-top:10px;">
-            <input type="number" id="setMins" placeholder="Мин">
-            <button class="btn-blue" onclick="setManualTime()">Задай време</button>
-        </div>
-    </div>
-
-    <div class="card">
-        <h3>🎨 НАСТРОЙКИ ОТБОРИ</h3>
-        <div style="margin-bottom: 10px;">
-            <input type="text" id="hNameInput" placeholder="Име Домакин" oninput="saveToLocal()">
-            <input type="color" id="hColorInput" value="#ff0000" onchange="saveToLocal()"><br>
-            <input type="text" id="aNameInput" placeholder="Име Гост" oninput="saveToLocal()">
-            <input type="color" id="aColorInput" value="#0000ff" onchange="saveToLocal()">
-        </div>
-        <button class="btn-update" onclick="updateEverything()">🔄 ОБНОВИ ВСИЧКО</button>
-        <small style="color: #666; display: block; margin-top: 5px;">Възстановява данните след заспиване</small>
-    </div>
-
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
         let s = { home: 0, away: 0, homeRedCards: 0, awayRedCards: 0 };
         let reloadTimer = null;
 
+        // Помощна функция за форматиране на времето
+        function formatAdminTime(totalSeconds) {
+            if (isNaN(totalSeconds)) return "00:00";
+            const mins = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+            const secs = (totalSeconds % 60).toString().padStart(2, '0');
+            return `${mins}:${secs}`;
+        }
+
+        // СЛУШАТЕЛ ЗА ЧАСОВНИКА (Обновява само цифрите горе)
         socket.on('timerUpdate', (data) => {
-            let totalSeconds = 0;
-            if (typeof data === 'number') totalSeconds = data;
-            else if (data && typeof data.seconds !== 'undefined') totalSeconds = data.seconds;
-            if (!isNaN(totalSeconds)) {
-                const mins = Math.floor(totalSeconds / 60);
-                const secs = totalSeconds % 60;
-                document.getElementById('live-clock').innerText = 
-                    mins.toString().padStart(2, '0') + ":" + secs.toString().padStart(2, '0');
-            }
+            const seconds = (typeof data === 'object') ? data.seconds : data;
+            document.getElementById('live-clock').innerText = formatAdminTime(seconds);
         });
 
         socket.on('connect', () => {
@@ -123,6 +32,7 @@
             reloadTimer = setTimeout(() => { location.reload(); }, 10000);
         });
 
+        // ОСНОВЕН ЪПДЕЙТ (Обновява всичко останало)
         socket.on('update', (data) => { 
             s.home = data.home;
             s.away = data.away;
@@ -133,8 +43,48 @@
             document.getElementById('aDisplay').innerText = s.away;
             document.getElementById('hRedDisplay').innerText = s.homeRedCards;
             document.getElementById('aRedDisplay').innerText = s.awayRedCards;
+            
+            // Сверяваме и часовника тук, за да не се нулира при промени
+            if (data.seconds !== undefined) {
+                document.getElementById('live-clock').innerText = formatAdminTime(data.seconds);
+            }
             saveToLocal();
         });
+
+        function change(h, a) {
+            s.home = Math.max(0, s.home + h);
+            s.away = Math.max(0, s.away + a);
+            socket.emit('changeScore', { home: s.home, away: s.away });
+        }
+
+        function changeRed(team, val) {
+            if (team === 'home') s.homeRedCards = Math.max(0, s.homeRedCards + val);
+            else s.awayRedCards = Math.max(0, s.awayRedCards + val);
+            socket.emit('changeScore', { homeRedCards: s.homeRedCards, awayRedCards: s.awayRedCards });
+        }
+
+        function timer(cmd) {
+            socket.emit('controlTimer', cmd);
+        }
+
+        function setManualTime() {
+            const mins = document.getElementById('setMins').value;
+            if (mins !== "") socket.emit('setManualTime', mins);
+        }
+
+        function updateEverything() {
+            const data = {
+                homeName: document.getElementById('hNameInput').value,
+                awayName: document.getElementById('aNameInput').value,
+                homeColor: document.getElementById('hColorInput').value,
+                awayColor: document.getElementById('aColorInput').value,
+                home: s.home,
+                away: s.away,
+                homeRedCards: s.homeRedCards,
+                awayRedCards: s.awayRedCards
+            };
+            socket.emit('changeScore', data);
+        }
 
         function saveToLocal() {
             const dataToSave = {
@@ -158,68 +108,8 @@
                 document.getElementById('aNameInput').value = data.aName || "";
                 document.getElementById('hColorInput').value = data.hColor || "#ff0000";
                 document.getElementById('aColorInput').value = data.aColor || "#0000ff";
-                s.home = data.home || 0;
-                s.away = data.away || 0;
-                s.homeRedCards = data.homeRedCards || 0;
-                s.awayRedCards = data.awayRedCards || 0;
-                
-                document.getElementById('hDisplay').innerText = s.home;
-                document.getElementById('aDisplay').innerText = s.away;
-                document.getElementById('hRedDisplay').innerText = s.homeRedCards;
-                document.getElementById('aRedDisplay').innerText = s.awayRedCards;
             }
         };
-
-        function change(h, a) {
-            s.home = Math.max(0, s.home + h);
-            s.away = Math.max(0, s.away + a);
-            socket.emit('changeScore', { home: s.home, away: s.away, homeRedCards: s.homeRedCards, awayRedCards: s.awayRedCards });
-        }
-
-        function changeRed(team, val) {
-            if (team === 'home') s.homeRedCards = Math.max(0, s.homeRedCards + val);
-            else s.awayRedCards = Math.max(0, s.awayRedCards + val);
-            
-            document.getElementById('hRedDisplay').innerText = s.homeRedCards;
-            document.getElementById('aRedDisplay').innerText = s.awayRedCards;
-            
-            socket.emit('changeScore', { 
-                home: s.home, 
-                away: s.away, 
-                homeRedCards: s.homeRedCards, 
-                awayRedCards: s.awayRedCards 
-            });
-        }
-
-        function timer(cmd) { 
-            if(cmd === 'reset') {
-                s.homeRedCards = 0;
-                s.awayRedCards = 0;
-                document.getElementById('hRedDisplay').innerText = 0;
-                document.getElementById('aRedDisplay').innerText = 0;
-            }
-            socket.emit('controlTimer', cmd); 
-        }
-
-        function setManualTime() {
-            const mins = document.getElementById('setMins').value;
-            if(mins !== "") socket.emit('setManualTime', mins);
-        }
-
-        function updateEverything() {
-            saveToLocal();
-            socket.emit('changeScore', { 
-                homeName: document.getElementById('hNameInput').value,
-                awayName: document.getElementById('aNameInput').value,
-                homeColor: document.getElementById('hColorInput').value,
-                awayColor: document.getElementById('aColorInput').value,
-                home: s.home,
-                away: s.away,
-                homeRedCards: s.homeRedCards,
-                awayRedCards: s.awayRedCards
-            });
-            alert("Данните са изпратени!");
-        }
     </script>
 </body>
 </html>
