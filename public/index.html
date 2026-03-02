@@ -7,43 +7,70 @@
             font-family: 'Arial', sans-serif; 
             background: transparent; 
             margin: 0; 
-            padding: 20px; 
+            padding: 10px; /* Намален външен отстъп */
             color: white; 
         }
         .scoreboard { 
             display: flex; 
             align-items: center; 
-            background: rgba(0, 0, 0, 0.7); 
-            padding: 15px 25px; 
-            border-radius: 10px; 
+            background: rgba(0, 0, 0, 0.6); /* Малко по-прозрачно */
+            padding: 8px 15px; /* Намален вътрешен отстъп - по-тясна основа */
+            border-radius: 8px; 
             width: fit-content;
-            border: 2px solid #555;
+            border: 1px solid rgba(255, 255, 255, 0.2); /* По-фина рамка */
             
-            /* ПРОПОРЦИОНАЛНО НАМАЛЯВАНЕ */
-            transform: scale(0.8); /* Стойност 1.0 е оригиналният размер. 0.8 го намалява с 20%. */
-            transform-origin: top left; /* Гарантира, че таблото остава в горния ляв ъгъл */
+            /* КОМПАКТНОСТ */
+            transform: scale(0.85); 
+            transform-origin: top left; 
+            gap: 10px; /* Фиксирано малко разстояние между елементите */
         }
-        .timer { font-size: 30px; color: #00ff00; margin-right: 20px; font-family: monospace; }
+        .timer { 
+            font-size: 26px; 
+            color: #00ff00; 
+            font-family: monospace; 
+            min-width: 75px; 
+        }
         .team-name { 
-            font-size: 24px; 
+            font-size: 20px; 
             font-weight: bold; 
             text-transform: uppercase; 
-            padding: 5px 15px;
-            border-radius: 5px;
-            transition: all 0.3s;
-            display: inline-block;
+            padding: 3px 10px; /* По-малки кутийки за имената */
+            border-radius: 4px;
+            max-width: 150px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
-        .score { font-size: 36px; font-weight: bold; color: #ffcc00; margin: 0 15px; min-width: 30px; text-align: center; }
+        .score-container {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1); /* Леко подчертаване на зоната за резултат */
+            padding: 0 10px;
+            border-radius: 5px;
+        }
+        .score { 
+            font-size: 30px; 
+            font-weight: bold; 
+            color: #ffcc00; 
+            min-width: 25px; 
+            text-align: center; 
+        }
+        .separator { font-size: 24px; margin: 0 5px; color: #ccc; }
     </style>
 </head>
 <body>
 
     <div class="scoreboard">
         <div id="timer" class="timer">00:00</div>
+        
         <div id="homeName" class="team-name">HOME</div>
-        <div id="homeScore" class="score">0</div>
-        <div style="font-size: 30px;">:</div>
-        <div id="awayScore" class="score">0</div>
+        
+        <div class="score-container">
+            <div id="homeScore" class="score">0</div>
+            <div class="separator">:</div>
+            <div id="awayScore" class="score">0</div>
+        </div>
+        
         <div id="awayName" class="team-name">AWAY</div>
     </div>
 
@@ -52,6 +79,7 @@
         const socket = io();
         
         const formatTime = (s) => {
+            if (isNaN(s)) return "00:00";
             const mins = Math.floor(s / 60).toString().padStart(2, '0');
             const secs = (s % 60).toString().padStart(2, '0');
             return `${mins}:${secs}`;
@@ -60,9 +88,7 @@
         function getContrastYIQ(hexcolor){
             if (!hexcolor) return 'white';
             hexcolor = hexcolor.replace("#", "");
-            if (hexcolor.length === 3) {
-                hexcolor = hexcolor.split('').map(c => c + c).join('');
-            }
+            if (hexcolor.length === 3) hexcolor = hexcolor.split('').map(c => c + c).join('');
             var r = parseInt(hexcolor.substr(0,2),16);
             var g = parseInt(hexcolor.substr(2,2),16);
             var b = parseInt(hexcolor.substr(4,2),16);
@@ -74,8 +100,8 @@
             const homeEl = document.getElementById('homeName');
             const awayEl = document.getElementById('awayName');
 
-            homeEl.innerText = data.homeName;
-            awayEl.innerText = data.awayName;
+            homeEl.innerText = data.homeName || "HOME";
+            awayEl.innerText = data.awayName || "AWAY";
 
             if (data.homeColor) {
                 homeEl.style.backgroundColor = data.homeColor;
@@ -88,7 +114,9 @@
 
             document.getElementById('homeScore').innerText = data.home;
             document.getElementById('awayScore').innerText = data.away;
-            document.getElementById('timer').innerText = formatTime(data.seconds);
+            if (data.seconds !== undefined) {
+                document.getElementById('timer').innerText = formatTime(data.seconds);
+            }
         });
 
         socket.on('timerUpdate', (seconds) => {
