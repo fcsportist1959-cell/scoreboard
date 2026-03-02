@@ -22,11 +22,12 @@ app.get('/admin.html', (req, res) => {
 
 app.use(express.static('public'));
 
-// Глобално състояние на играта
+// Глобално състояние на играта (ДОБАВЕНИ КАРТОНИ)
 let gameState = { 
     home: 0, away: 0, 
     homeName: "HOME", awayName: "AWAY", 
     homeColor: "#ff0000", awayColor: "#0000ff",
+    homeRedCards: 0, awayRedCards: 0, // Нови полета
     seconds: 0, isRunning: false 
 };
 
@@ -34,7 +35,8 @@ let gameState = {
 setInterval(() => {
     if (gameState.isRunning) {
         gameState.seconds++;
-        io.emit('timerUpdate', gameState.seconds);
+        // Изпращаме само секундите за по-добра производителност
+        io.emit('timerUpdate', { seconds: gameState.seconds });
     }
 }, 1000);
 
@@ -42,8 +44,9 @@ io.on('connection', (socket) => {
     // Изпращане на текущото състояние при свързване
     socket.emit('update', gameState);
 
-    // Промяна на резултат, имена или цветове
+    // Промяна на резултат, имена, цветове И КАРТОНИ
     socket.on('changeScore', (data) => {
+        // Използваме Object.assign или spread, за да запазим текущите данни и да обновим само новите
         gameState = { ...gameState, ...data };
         io.emit('update', gameState);
     });
@@ -52,7 +55,12 @@ io.on('connection', (socket) => {
     socket.on('controlTimer', (command) => {
         if (command === 'start') gameState.isRunning = true;
         if (command === 'pause') gameState.isRunning = false;
-        if (command === 'reset') { gameState.seconds = 0; gameState.isRunning = false; }
+        if (command === 'reset') { 
+            gameState.seconds = 0; 
+            gameState.isRunning = false; 
+            gameState.homeRedCards = 0; // Нулиране на картоните при нов мач
+            gameState.awayRedCards = 0;
+        }
         io.emit('update', gameState);
     });
 
