@@ -7,55 +7,55 @@
             font-family: 'Arial', sans-serif; 
             background: transparent; 
             margin: 0; 
-            padding: 10px; /* Намален външен отстъп */
+            padding: 10px; 
             color: white; 
         }
         .scoreboard { 
             display: flex; 
             align-items: center; 
-            background: rgba(0, 0, 0, 0.6); /* Малко по-прозрачно */
-            padding: 8px 15px; /* Намален вътрешен отстъп - по-тясна основа */
-            border-radius: 8px; 
+            background: rgba(0, 0, 0, 0.65); 
+            padding: 6px 12px; 
+            border-radius: 6px; 
             width: fit-content;
-            border: 1px solid rgba(255, 255, 255, 0.2); /* По-фина рамка */
+            border: 1px solid rgba(255, 255, 255, 0.15);
             
-            /* КОМПАКТНОСТ */
             transform: scale(0.85); 
             transform-origin: top left; 
-            gap: 10px; /* Фиксирано малко разстояние между елементите */
+            gap: 8px; /* Още по-прибрано разстояние */
         }
         .timer { 
-            font-size: 26px; 
+            font-size: 24px; 
             color: #00ff00; 
             font-family: monospace; 
-            min-width: 75px; 
+            padding-right: 5px;
+            border-right: 1px solid rgba(255,255,255,0.2); /* Разделител за таймера */
         }
         .team-name { 
             font-size: 20px; 
             font-weight: bold; 
             text-transform: uppercase; 
-            padding: 3px 10px; /* По-малки кутийки за имената */
+            padding: 4px 12px; 
             border-radius: 4px;
-            max-width: 150px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            /* Премахнато max-width, за да не реже имената */
+            white-space: nowrap; 
+            display: inline-block;
         }
         .score-container {
             display: flex;
             align-items: center;
-            background: rgba(255, 255, 255, 0.1); /* Леко подчертаване на зоната за резултат */
-            padding: 0 10px;
-            border-radius: 5px;
+            background: rgba(0, 0, 0, 0.3); 
+            padding: 2px 10px;
+            border-radius: 4px;
+            margin: 0 2px;
         }
         .score { 
-            font-size: 30px; 
+            font-size: 28px; 
             font-weight: bold; 
             color: #ffcc00; 
-            min-width: 25px; 
+            min-width: 20px; 
             text-align: center; 
         }
-        .separator { font-size: 24px; margin: 0 5px; color: #ccc; }
+        .separator { font-size: 22px; margin: 0 3px; color: #ccc; }
     </style>
 </head>
 <body>
@@ -79,7 +79,7 @@
         const socket = io();
         
         const formatTime = (s) => {
-            if (isNaN(s)) return "00:00";
+            if (isNaN(s) || s === null) return "00:00";
             const mins = Math.floor(s / 60).toString().padStart(2, '0');
             const secs = (s % 60).toString().padStart(2, '0');
             return `${mins}:${secs}`;
