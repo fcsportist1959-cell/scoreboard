@@ -3,182 +3,225 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Админ Панел - Scoreboard</title>
+    <title>Админ Панел - PRISM Live Edition</title>
     <style>
-        body { font-family: sans-serif; background: #1a1a1a; color: white; text-align: center; padding: 20px; }
-        .panel { background: #2a2a2a; padding: 20px; border-radius: 10px; display: inline-block; min-width: 300px; }
-        .status { margin-bottom: 20px; font-size: 0.8em; }
-        #statusDot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: #dc3545; }
-        .score-box { font-size: 3em; margin: 10px; }
-        button { padding: 10px 20px; font-size: 1em; cursor: pointer; margin: 5px; border-radius: 5px; border: none; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #121212; color: white; margin: 0; padding: 10px; }
+        .container { max-width: 800px; margin: auto; }
+        .section { background: #1e1e1e; border: 1px solid #333; border-radius: 8px; padding: 15px; margin-bottom: 15px; }
+        .section-title { font-size: 0.9em; color: #888; text-transform: uppercase; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px; }
+        
+        /* Време */
+        #live-clock { font-size: 3.5em; margin: 5px 0; font-family: monospace; color: #00ff00; }
+        
+        /* Отбори */
+        .team-config { display: flex; gap: 10px; justify-content: center; }
+        .team-input-group { flex: 1; padding: 10px; border-radius: 5px; transition: 0.3s; }
+        input[type="text"] { width: 80%; padding: 8px; border: none; border-radius: 4px; font-weight: bold; text-align: center; }
+        
+        /* Резултати */
+        .score-grid { display: flex; justify-content: space-around; align-items: center; }
+        .score-box { font-size: 4em; font-weight: bold; margin: 10px 0; }
+        
+        /* Бутони */
+        button { padding: 10px 15px; font-size: 1em; cursor: pointer; border-radius: 4px; border: none; font-weight: bold; }
+        .btn-main { background: #444; color: white; }
         .btn-green { background: #28a745; color: white; }
         .btn-red { background: #dc3545; color: white; }
-        input { padding: 8px; margin: 5px; width: 150px; border-radius: 5px; border: 1px solid #444; }
-        #reloadingText { color: #ffc107; display: none; }
+        .btn-orange { background: #fd7e14; color: white; }
+        .btn-sync { background: #007bff; color: white; width: 100%; font-size: 1.2em; padding: 20px; }
+        
+        .controls { display: flex; justify-content: center; gap: 5px; align-items: center; }
+        .card-count { font-size: 1.2em; background: #900; padding: 2px 10px; border-radius: 3px; }
+        
+        input[type="number"] { width: 60px; padding: 8px; background: #333; color: white; border: 1px solid #555; }
+        .status { font-size: 0.8em; margin-bottom: 5px; }
     </style>
 </head>
 <body>
 
-    <div class="panel">
-        <div class="status">
-            <span id="statusDot"></span> <span id="statusText">OFFLINE</span>
-            <div id="reloadingText">Връзката прекъсна! Презареждане...</div>
+<div class="container">
+    <!-- СЕКЦИЯ 1: ВРЕМЕ -->
+    <div class="section">
+        <div class="section-title">Време и Контрол</div>
+        <div id="live-clock">00:00</div>
+        <div class="controls">
+            <button onclick="timer('start')" class="btn-green">СТАРТ</button>
+            <button onclick="timer('pause')" class="btn-main">ПАУЗА</button>
+            <button onclick="timer('reset')" class="btn-red">НУЛИРАЙ</button>
         </div>
-
-        <h1 id="live-clock">00:00</h1>
-        
-        <div>
-            <button onclick="timer('start')" class="btn-green">START</button>
-            <button onclick="timer('pause')">PAUSE</button>
-            <button onclick="timer('reset')" class="btn-red">RESET</button>
+        <div style="margin-top: 15px;">
+            <input type="number" id="setMins" value="45">
+            <button onclick="setManualTime()" class="btn-main">Задай мин.</button>
+            <button onclick="setHalfTime()" class="btn-orange">Второ полувреме (45')</button>
         </div>
-
-        <hr>
-
-        <div style="display: flex; justify-content: space-around;">
-            <div>
-                <input type="text" id="hNameInput" placeholder="Домакин" onchange="updateEverything()">
-                <div id="hDisplay" class="score-box">0</div>
-                <button onclick="change(1, 0)" class="btn-green">+ ГОЛ</button>
-                <button onclick="change(-1, 0)">-</button>
-                <p>Червени картони: <span id="hRedDisplay">0</span></p>
-                <button onclick="changeRed('home', 1)" class="btn-red">+ Картон</button>
-            </div>
-            <div>
-                <input type="text" id="aNameInput" placeholder="Гост" onchange="updateEverything()">
-                <div id="aDisplay" class="score-box">0</div>
-                <button onclick="change(0, 1)" class="btn-green">+ ГОЛ</button>
-                <button onclick="change(0, -1)">-</button>
-                <p>Червени картони: <span id="aRedDisplay">0</span></p>
-                <button onclick="changeRed('away', 1)" class="btn-red">+ Картон</button>
-            </div>
-        </div>
-
-        <hr>
-        
-        <p>Настройки на времето (минути):</p>
-        <input type="number" id="setMins" placeholder="45">
-        <button onclick="setManualTime()">Задай време</button>
-
-        <p>Цветове:</p>
-        <input type="color" id="hColorInput" value="#ff0000" onchange="updateEverything()">
-        <input type="color" id="aColorInput" value="#0000ff" onchange="updateEverything()">
     </div>
 
-    <!-- Твоят JS скрипт -->
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-        const socket = io();
-        let s = { home: 0, away: 0, homeRedCards: 0, awayRedCards: 0 };
-        let reloadTimer = null;
+    <!-- СЕКЦИЯ 2: ОТБОРИ -->
+    <div class="section">
+        <div class="section-title">Настройка на Отбори</div>
+        <div class="team-config">
+            <div id="hGroup" class="team-input-group">
+                <input type="text" id="hNameInput" placeholder="Домакин" oninput="updateEverything()">
+                <br><input type="color" id="hColorInput" value="#ff0000" onchange="updateEverything()" style="margin-top:5px">
+            </div>
+            <div id="aGroup" class="team-input-group">
+                <input type="text" id="aNameInput" placeholder="Гост" oninput="updateEverything()">
+                <br><input type="color" id="aColorInput" value="#0000ff" onchange="updateEverything()" style="margin-top:5px">
+            </div>
+        </div>
+    </div>
 
-        function formatAdminTime(totalSeconds) {
-            if (totalSeconds === undefined || totalSeconds === null || isNaN(totalSeconds)) return "00:00";
-            const mins = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
-            const secs = (totalSeconds % 60).toString().padStart(2, '0');
-            return `${mins}:${secs}`;
-        }
-
-        socket.on('timerUpdate', (data) => {
-            const seconds = (typeof data === 'object') ? data.seconds : data;
-            const timerEl = document.getElementById('live-clock');
-            if (timerEl) timerEl.innerText = formatAdminTime(seconds);
-        });
-
-        socket.on('connect', () => {
-            clearTimeout(reloadTimer);
-            document.getElementById('statusDot').style.backgroundColor = '#28a745';
-            document.getElementById('statusText').innerText = 'ONLINE';
-            document.getElementById('reloadingText').style.display = 'none';
-        });
-
-        socket.on('disconnect', () => {
-            document.getElementById('statusDot').style.backgroundColor = '#dc3545';
-            document.getElementById('statusText').innerText = 'OFFLINE';
-            document.getElementById('reloadingText').style.display = 'block';
-            reloadTimer = setTimeout(() => { location.reload(); }, 10000);
-        });
-
-        socket.on('update', (data) => { 
-            s.home = data.home || 0;
-            s.away = data.away || 0;
-            s.homeRedCards = data.homeRedCards || 0;
-            s.awayRedCards = data.awayRedCards || 0;
+    <!-- СЕКЦИЯ 3: РЕЗУЛТАТ И КАРТОНИ -->
+    <div class="section">
+        <div class="section-title">Резултат и Червени картони</div>
+        <div class="score-grid">
+            <div style="text-align:center">
+                <div id="hDisplay" class="score-box">0</div>
+                <button onclick="change(1, 0)" class="btn-green" style="font-size:1.5em">+ ГОЛ</button>
+                <button onclick="change(-1, 0)" class="btn-main">-</button>
+                <div style="margin-top:15px">
+                    <span class="card-count" id="hRedDisplay">0</span><br>
+                    <button onclick="changeRed('home', 1)" class="btn-red" style="margin-top:5px">+ КАРТОН</button>
+                    <button onclick="changeRed('home', -1)" class="btn-main">-</button>
+                </div>
+            </div>
             
-            document.getElementById('hDisplay').innerText = s.home;
-            document.getElementById('aDisplay').innerText = s.away;
-            document.getElementById('hRedDisplay').innerText = s.homeRedCards;
-            document.getElementById('aRedDisplay').innerText = s.awayRedCards;
-            
-            if (data.seconds !== undefined) {
-                document.getElementById('live-clock').innerText = formatAdminTime(data.seconds);
-            }
-            saveToLocal();
-        });
+            <div style="font-size: 2em; color: #444;">VS</div>
 
-        function change(h, a) {
-            s.home = Math.max(0, s.home + h);
-            s.away = Math.max(0, s.away + a);
-            socket.emit('changeScore', { home: s.home, away: s.away });
-        }
+            <div style="text-align:center">
+                <div id="aDisplay" class="score-box">0</div>
+                <button onclick="change(0, 1)" class="btn-green" style="font-size:1.5em">+ ГОЛ</button>
+                <button onclick="change(0, -1)" class="btn-main">-</button>
+                <div style="margin-top:15px">
+                    <span class="card-count" id="aRedDisplay">0</span><br>
+                    <button onclick="changeRed('away', 1)" class="btn-red" style="margin-top:5px">+ КАРТОН</button>
+                    <button onclick="changeRed('away', -1)" class="btn-main">-</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        function changeRed(team, val) {
-            if (team === 'home') s.homeRedCards = Math.max(0, s.homeRedCards + val);
-            else s.awayRedCards = Math.max(0, s.awayRedCards + val);
-            socket.emit('changeScore', { homeRedCards: s.homeRedCards, awayRedCards: s.awayRedCards });
-        }
+    <!-- СЕКЦИЯ 4: СИСТЕМНИ -->
+    <div class="section">
+        <div class="status">
+            Статус: <span id="statusDot" style="width:10px;height:10px;display:inline-block;border-radius:50%"></span> 
+            <span id="statusText">ПРОВЕРКА...</span>
+        </div>
+        <button onclick="updateEverything()" class="btn-sync">СИНХРОНИЗИРАЙ ВСИЧКО (Force Sync)</button>
+        <p id="reloadingText" style="color:orange; display:none">Връзката прекъсна! Опит за рестарт...</p>
+    </div>
+</div>
 
-        function timer(cmd) {
-            socket.emit('controlTimer', cmd);
-        }
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    const socket = io();
+    let s = { home: 0, away: 0, homeRedCards: 0, awayRedCards: 0 };
 
-        function setManualTime() {
-            const mins = document.getElementById('setMins').value;
-            if (mins !== "") socket.emit('setManualTime', mins);
-        }
+    // Функция за контрастен текст (черно или бяло върху цветен фон)
+    function getContrastYIQ(hexcolor){
+        hexcolor = hexcolor.replace("#", "");
+        var r = parseInt(hexcolor.substr(0,2),16);
+        var g = parseInt(hexcolor.substr(2,2),16);
+        var b = parseInt(hexcolor.substr(4,2),16);
+        var yiq = ((r*299)+(g*587)+(b*114))/1000;
+        return (yiq >= 128) ? 'black' : 'white';
+    }
 
-        function updateEverything() {
-            const data = {
-                homeName: document.getElementById('hNameInput').value,
-                awayName: document.getElementById('aNameInput').value,
-                homeColor: document.getElementById('hColorInput').value,
-                awayColor: document.getElementById('aColorInput').value,
-                home: s.home,
-                away: s.away,
-                homeRedCards: s.homeRedCards,
-                awayRedCards: s.awayRedCards
-            };
-            socket.emit('changeScore', data);
-        }
+    function formatAdminTime(totalSeconds) {
+        const mins = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+        const secs = (totalSeconds % 60).toString().padStart(2, '0');
+        return `${mins}:${secs}`;
+    }
 
-        function saveToLocal() {
-            const dataToSave = {
-                hName: document.getElementById('hNameInput').value,
-                aName: document.getElementById('aNameInput').value,
-                hColor: document.getElementById('hColorInput').value,
-                aColor: document.getElementById('aColorInput').value,
-                home: s.home,
-                away: s.away,
-                homeRedCards: s.homeRedCards,
-                awayRedCards: s.awayRedCards
-            };
-            localStorage.setItem('scoreboardCache', JSON.stringify(dataToSave));
-        }
+    socket.on('timerUpdate', (data) => {
+        const seconds = (typeof data === 'object') ? data.seconds : data;
+        document.getElementById('live-clock').innerText = formatAdminTime(seconds);
+    });
 
-        window.onload = function() {
-            const saved = localStorage.getItem('scoreboardCache');
-            if (saved) {
-                const data = JSON.parse(saved);
-                document.getElementById('hNameInput').value = data.hName || "";
-                document.getElementById('aNameInput').value = data.aName || "";
-                document.getElementById('hColorInput').value = data.hColor || "#ff0000";
-                document.getElementById('aColorInput').value = data.aColor || "#0000ff";
-                s.home = data.home || 0;
-                s.away = data.away || 0;
-                s.homeRedCards = data.homeRedCards || 0;
-                s.awayRedCards = data.awayRedCards || 0;
-            }
+    socket.on('connect', () => {
+        document.getElementById('statusDot').style.backgroundColor = '#28a745';
+        document.getElementById('statusText').innerText = 'ONLINE';
+        document.getElementById('reloadingText').style.display = 'none';
+    });
+
+    socket.on('disconnect', () => {
+        document.getElementById('statusDot').style.backgroundColor = '#dc3545';
+        document.getElementById('statusText').innerText = 'OFFLINE';
+        document.getElementById('reloadingText').style.display = 'block';
+    });
+
+    socket.on('update', (data) => { 
+        s = {...s, ...data};
+        document.getElementById('hDisplay').innerText = s.home;
+        document.getElementById('aDisplay').innerText = s.away;
+        document.getElementById('hRedDisplay').innerText = s.homeRedCards;
+        document.getElementById('aRedDisplay').innerText = s.awayRedCards;
+        
+        // Визуална синхронизация на имената и цветовете
+        if(data.homeName) document.getElementById('hNameInput').value = data.homeName;
+        if(data.awayName) document.getElementById('aNameInput').value = data.awayName;
+        if(data.homeColor) document.getElementById('hColorInput').value = data.homeColor;
+        if(data.awayColor) document.getElementById('aColorInput').value = data.awayColor;
+        
+        applyColors();
+    });
+
+    function applyColors() {
+        const hColor = document.getElementById('hColorInput').value;
+        const aColor = document.getElementById('aColorInput').value;
+        
+        const hGroup = document.getElementById('hGroup');
+        const aGroup = document.getElementById('aGroup');
+        
+        hGroup.style.backgroundColor = hColor;
+        aGroup.style.backgroundColor = aColor;
+        
+        document.getElementById('hNameInput').style.color = getContrastYIQ(hColor);
+        document.getElementById('hNameInput').style.backgroundColor = 'transparent';
+        
+        document.getElementById('aNameInput').style.color = getContrastYIQ(aColor);
+        document.getElementById('aNameInput').style.backgroundColor = 'transparent';
+    }
+
+    function change(h, a) {
+        s.home = Math.max(0, s.home + h);
+        s.away = Math.max(0, s.away + a);
+        socket.emit('changeScore', { home: s.home, away: s.away });
+    }
+
+    function changeRed(team, val) {
+        if (team === 'home') s.homeRedCards = Math.max(0, s.homeRedCards + val);
+        else s.awayRedCards = Math.max(0, s.awayRedCards + val);
+        socket.emit('changeScore', { homeRedCards: s.homeRedCards, awayRedCards: s.awayRedCards });
+    }
+
+    function timer(cmd) { socket.emit('controlTimer', cmd); }
+
+    function setManualTime() {
+        const mins = document.getElementById('setMins').value;
+        socket.emit('setManualTime', mins);
+    }
+
+    function setHalfTime() {
+        socket.emit('setManualTime', 45);
+    }
+
+    function updateEverything() {
+        applyColors();
+        const data = {
+            homeName: document.getElementById('hNameInput').value,
+            awayName: document.getElementById('aNameInput').value,
+            homeColor: document.getElementById('hColorInput').value,
+            awayColor: document.getElementById('aColorInput').value,
+            home: s.home,
+            away: s.away,
+            homeRedCards: s.homeRedCards,
+            awayRedCards: s.awayRedCards
         };
-    </script>
+        socket.emit('changeScore', data);
+    }
+
+    window.onload = applyColors;
+</script>
 </body>
 </html>
