@@ -1,3 +1,71 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ Панел - Scoreboard</title>
+    <style>
+        body { font-family: sans-serif; background: #1a1a1a; color: white; text-align: center; padding: 20px; }
+        .panel { background: #2a2a2a; padding: 20px; border-radius: 10px; display: inline-block; min-width: 300px; }
+        .status { margin-bottom: 20px; font-size: 0.8em; }
+        #statusDot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: #dc3545; }
+        .score-box { font-size: 3em; margin: 10px; }
+        button { padding: 10px 20px; font-size: 1em; cursor: pointer; margin: 5px; border-radius: 5px; border: none; }
+        .btn-green { background: #28a745; color: white; }
+        .btn-red { background: #dc3545; color: white; }
+        input { padding: 8px; margin: 5px; width: 150px; border-radius: 5px; border: 1px solid #444; }
+        #reloadingText { color: #ffc107; display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="panel">
+        <div class="status">
+            <span id="statusDot"></span> <span id="statusText">OFFLINE</span>
+            <div id="reloadingText">Връзката прекъсна! Презареждане...</div>
+        </div>
+
+        <h1 id="live-clock">00:00</h1>
+        
+        <div>
+            <button onclick="timer('start')" class="btn-green">START</button>
+            <button onclick="timer('pause')">PAUSE</button>
+            <button onclick="timer('reset')" class="btn-red">RESET</button>
+        </div>
+
+        <hr>
+
+        <div style="display: flex; justify-content: space-around;">
+            <div>
+                <input type="text" id="hNameInput" placeholder="Домакин" onchange="updateEverything()">
+                <div id="hDisplay" class="score-box">0</div>
+                <button onclick="change(1, 0)" class="btn-green">+ ГОЛ</button>
+                <button onclick="change(-1, 0)">-</button>
+                <p>Червени картони: <span id="hRedDisplay">0</span></p>
+                <button onclick="changeRed('home', 1)" class="btn-red">+ Картон</button>
+            </div>
+            <div>
+                <input type="text" id="aNameInput" placeholder="Гост" onchange="updateEverything()">
+                <div id="aDisplay" class="score-box">0</div>
+                <button onclick="change(0, 1)" class="btn-green">+ ГОЛ</button>
+                <button onclick="change(0, -1)">-</button>
+                <p>Червени картони: <span id="aRedDisplay">0</span></p>
+                <button onclick="changeRed('away', 1)" class="btn-red">+ Картон</button>
+            </div>
+        </div>
+
+        <hr>
+        
+        <p>Настройки на времето (минути):</p>
+        <input type="number" id="setMins" placeholder="45">
+        <button onclick="setManualTime()">Задай време</button>
+
+        <p>Цветове:</p>
+        <input type="color" id="hColorInput" value="#ff0000" onchange="updateEverything()">
+        <input type="color" id="aColorInput" value="#0000ff" onchange="updateEverything()">
+    </div>
+
+    <!-- Твоят JS скрипт -->
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
@@ -105,7 +173,6 @@
                 document.getElementById('aNameInput').value = data.aName || "";
                 document.getElementById('hColorInput').value = data.hColor || "#ff0000";
                 document.getElementById('aColorInput').value = data.aColor || "#0000ff";
-                // Коректно възстановяване на локалните данни
                 s.home = data.home || 0;
                 s.away = data.away || 0;
                 s.homeRedCards = data.homeRedCards || 0;
