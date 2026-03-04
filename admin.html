@@ -101,6 +101,45 @@
     const socket = io();
     let s = { home: 0, away: 0, homeRedCards: 0, awayRedCards: 0 };
 
+    // LOCAL STORAGE LOGIC
+    function saveLocal() {
+        const data = {
+            homeName: document.getElementById('hNameInput').value,
+            awayName: document.getElementById('aNameInput').value,
+            homeColor: document.getElementById('hColorInput').value,
+            awayColor: document.getElementById('aColorInput').value,
+            home: s.home,
+            away: s.away,
+            homeRedCards: s.homeRedCards,
+            awayRedCards: s.awayRedCards
+        };
+        localStorage.setItem('prism_cache', JSON.stringify(data));
+    }
+
+    function loadLocal() {
+        const cached = localStorage.getItem('prism_cache');
+        if (cached) {
+            const data = JSON.parse(cached);
+            document.getElementById('hNameInput').value = data.homeName || "";
+            document.getElementById('aNameInput').value = data.awayName || "";
+            document.getElementById('hColorInput').value = data.homeColor || "#ff0000";
+            document.getElementById('aColorInput').value = data.awayColor || "#0000ff";
+            s.home = data.home || 0;
+            s.away = data.away || 0;
+            s.homeRedCards = data.homeRedCards || 0;
+            s.awayRedCards = data.awayRedCards || 0;
+            updateUI();
+        }
+    }
+
+    function updateUI() {
+        document.getElementById('hDisplay').innerText = s.home;
+        document.getElementById('aDisplay').innerText = s.away;
+        document.getElementById('hRedDisplay').innerText = s.homeRedCards;
+        document.getElementById('aRedDisplay').innerText = s.awayRedCards;
+        applyColors();
+    }
+
     function getContrastYIQ(hexcolor){
         hexcolor = hexcolor.replace("#", "");
         var r = parseInt(hexcolor.substr(0,2),16);
@@ -125,6 +164,7 @@
         document.getElementById('statusDot').style.backgroundColor = '#28a745';
         document.getElementById('statusText').innerText = 'ONLINE';
         document.getElementById('reloadingText').style.display = 'none';
+        updateEverything(); // Sync with server on reconnect
     });
 
     socket.on('disconnect', () => {
@@ -135,80 +175,77 @@
 
     socket.on('update', (data) => { 
         s = {...s, ...data};
-        document.getElementById('hDisplay').innerText = s.home;
-        document.getElementById('aDisplay').innerText = s.away;
-        document.getElementById('hRedDisplay').innerText = s.homeRedCards;
-        document.getElementById('aRedDisplay').innerText = s.awayRedCards;
-        
+        updateUI();
         if(data.homeName) document.getElementById('hNameInput').value = data.homeName;
         if(data.awayName) document.getElementById('aNameInput').value = data.awayName;
         if(data.homeColor) document.getElementById('hColorInput').value = data.homeColor;
         if(data.awayColor) document.getElementById('aColorInput').value = data.awayColor;
-        
-        applyColors();
         saveLocal();
     });
 
     function applyColors() {
         const hCol = document.getElementById('hColorInput').value;
         const aCol = document.getElementById('aColorInput').value;
-        document.getElementById('hGroup').style.backgroundColor = hCol;
-        document.getElementById('aGroup').style.backgroundColor = aCol;
-        document.getElementById('hNameInput').style.color = getContrastYIQ(hCol);
-        document.getElementById('aNameInput').style.color = getContrastYIQ(aCol);
-        document.getElementById('hNameInput').style.backgroundColor = 'transparent';
-        document.getElementById('aNameInput').style.backgroundColor = 'transparent';
+        const hGrp = document.getElementById('hGroup');
+        const aGrp = document.getElementById('aGroup');
+        hGrp.style.backgroundColor = hCol;
+        hGrp.style.color = getContrastYIQ(hCol);
+        aGrp.style.backgroundColor = aCol;
+        aGrp.style.color = getContrastYIQ(aCol);
+    }
+
+    function updateEverything() {
+        const data = {
+            homeName: document.getElementById('hNameInput').value,
+            awayName: document.getElementById('aNameInput').value,
+            homeColor: document.getElementById('hColorInput').value,
+            awayColor: document.getElementById('aColorInput').value,
+            home: s.home,
+            away: s.away,
+            homeRedCards: s.homeRedCards,
+            awayRedCards: s.awayRedCards
+        };
+        socket.emit('changeScore', data);
+        applyColors();
+        saveLocal();
     }
 
     function change(h, a) {
         s.home = Math.max(0, s.home + h);
         s.away = Math.max(0, s.away + a);
-        socket.emit('changeScore', { home: s.home, away: s.away });
+        updateEverything();
     }
 
     function changeRed(team, val) {
-        if (team === 'home') s.homeRedCards = Math.max(0, s.homeRedCards + val);
+        if(team === 'home') s.homeRedCards = Math.max(0, s.homeRedCards + val);
         else s.awayRedCards = Math.max(0, s.awayRedCards + val);
-        socket.emit('changeScore', { homeRedCards: s.homeRedCards, awayRedCards: s.awayRedCards });
+        updateEverything();
     }
 
-    function timer(cmd) { socket.emit('controlTimer', cmd); }
-    function setManualTime() { socket.emit('setManualTime', document.getElementById('setMins').value); }
-    function setHalfTime() { socket.emit('setManualTime', 45); }
-
-    function updateEverything() {
-        applyColors();
-        socket.emit('changeScore', {
-            homeName: document.getElementById('hNameInput').value,
-            awayName: document.getElementById('aNameInput').value,
-            homeColor: document.getElementById('hColorInput').value,
-            awayColor: document.getElementById('aColorInput').value,
-            home: s.home, away: s.away,
-            homeRedCards: s.homeRedCards, awayRedCards: s.awayRedCards
-        });
-        saveLocal();
-    }
-
-    function saveLocal() {
-        const data = {
-            hn: document.getElementById('hNameInput').value,
-            an: document.getElementById('aNameInput').value,
-            hc: document.getElementById('hColorInput').value,
-            ac: document.getElementById('aColorInput').value
-        };
-        localStorage.setItem('sb_cache', JSON.stringify(data));
-    }
-
-    window.onload = () => {
-        const cache = JSON.parse(localStorage.getItem('sb_cache'));
-        if(cache) {
-            document.getElementById('hNameInput').value = cache.hn;
-            document.getElementById('aNameInput').value = cache.an;
-            document.getElementById('hColorInput').value = cache.hc;
-            document.getElementById('aColorInput').value = cache.ac;
+    function timer(cmd) {
+        socket.emit('controlTimer', cmd);
+        if(cmd === 'reset') {
+            s.homeRedCards = 0;
+            s.awayRedCards = 0;
+            updateUI();
         }
-        applyColors();
-    };
+    }
+
+    function setManualTime() {
+        const m = document.getElementById('setMins').value;
+        socket.emit('setManualTime', m);
+    }
+
+    function setHalfTime() {
+        socket.emit('setManualTime', 45);
+    }
+
+    // Keep Render.com awake
+    setInterval(() => {
+        fetch('/ping').catch(e => console.log("Wake up ping"));
+    }, 300000); // 5 mins
+
+    window.onload = loadLocal;
 </script>
 </body>
 </html>
