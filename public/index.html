@@ -3,93 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <style>
-        body { margin: 0; padding: 0; background: transparent; font-family: 'Exo 2', sans-serif; overflow: hidden; }
+        body { margin: 0; padding: 0; background: transparent; font-family: Arial, Helvetica, sans-serif; overflow: hidden; }
         
-        .board { 
-            position: absolute; top: 25px; left: 25px; 
-            display: flex; align-items: stretch; gap: 5px;
-            cursor: grab; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5)); 
+        .scoreboard { 
+            position: absolute; top: 20px; left: 20px; 
+            display: flex; align-items: stretch;
+            filter: drop-shadow(2px 2px 5px rgba(0,0,0,0.5));
             z-index: 1000;
         }
 
-        /* Скосен блок за Спонсор и Таймер */
-        .brand { 
-            background: #1e272e; 
-            padding: 15px 25px; 
-            display: flex; flex-direction: column; align-items: center; 
-            transform: skewX(-10deg); /* СКОСЯВАНЕ */
-            border-left: 4px solid #f1c40f;
-            min-width: 100px;
+        /* Класически правоъгълен блок за Спонсор и Време */
+        .brand-block { 
+            background: #1a1a1a; 
+            padding: 10px 15px; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            border-left: 5px solid #ffcc00; /* Акцентна лента */
+            min-width: 80px;
         }
 
-        /* Осмоъгълникът вътре е изправен (skew обратно), за да не криви логото */
-        .octagon-wrapper { 
-            transform: skewX(10deg); 
-            width: 80px; height: 80px;
-            background: white; 
-            clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+        .logo-box { 
+            width: 70px; height: 70px; 
+            background: #ffffff; 
+            border-radius: 4px; /* Леко заоблени ъгли за модерност, но без сложни форми */
             display: flex; align-items: center; justify-content: center; margin-bottom: 5px;
         }
-        .octagon-wrapper img { width: 70%; height: 70%; object-fit: contain; }
+        .logo-box img { max-width: 90%; max-height: 90%; object-fit: contain; }
 
-        .timer { 
-            transform: skewX(10deg);
-            font-size: 24px; color: #00ff00; font-weight: 800; font-family: monospace; 
+        .time-display { 
+            font-size: 22px; color: #ffffff; font-weight: bold; font-family: 'Courier New', Courier, monospace; 
         }
 
-        /* Секция за отбори */
-        .match { display: flex; flex-direction: column; gap: 4px; }
-
-        .row { 
-            display: flex; height: 48px; align-items: center; 
-            transform: skewX(-10deg); /* СКОСЯВАНЕ на целия ред */
-            overflow: hidden;
+        /* Секция Отбори - един под друг */
+        .teams-container { 
+            display: flex; flex-direction: column; 
+            background: rgba(0, 0, 0, 0.85); 
         }
 
-        .name { 
-            width: 310px; padding: 0 25px; 
-            font-size: 21px; font-weight: 800; text-transform: uppercase; 
-            height: 100%; line-height: 48px; 
-            /* Изправяме текста обратно */
-            display: flex; align-items: center;
+        .team-row { 
+            display: flex; height: 45px; align-items: center; 
+            border-bottom: 1px solid rgba(255,255,255,0.1); 
         }
-        .name span { transform: skewX(10deg); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+        .team-row:last-child { border-bottom: none; }
 
-        .score { 
-            width: 65px; background: #2f3640; color: #f1c40f; 
+        .name-cell { 
+            width: 260px; padding: 0 15px; 
+            font-size: 20px; font-weight: bold; text-transform: uppercase; color: #ffffff;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        .score-cell { 
+            width: 50px; background: #333333; color: #ffcc00; 
             display: flex; align-items: center; justify-content: center; 
-            font-size: 28px; font-weight: 900; height: 100%;
-            border-left: 2px solid rgba(255,255,255,0.1);
+            font-size: 26px; font-weight: bold; height: 100%;
         }
-        .score span { transform: skewX(10deg); }
 
-        .cards { transform: skewX(10deg); display: flex; gap: 4px; padding-left: 10px; }
-        .red-card { width: 10px; height: 15px; background: #e74c3c; border-radius: 1px; }
+        /* Картони под името - за да е чисто */
+        .cards-cell { display: flex; gap: 4px; padding: 0 10px; }
+        .red-card-icon { width: 10px; height: 14px; background: #ff0000; border-radius: 1px; border: 1px solid white; }
 
-        .pop { animation: p 0.4s ease; }
-        @keyframes p { 50% { transform: scale(1.3) skewX(10deg); color: #fff; } }
+        /* Анимация при гол */
+        .goal-flash { animation: flash 0.5s ease-in-out; }
+        @keyframes flash { 50% { background: #ffcc00; color: #000; } }
     </style>
 </head>
 <body>
 
-<div id="board" class="board">
-    <div class="brand">
-        <div class="octagon-wrapper">
-            <img src="https://placeholder.com" alt="Logo">
+<div id="board" class="scoreboard">
+    <div class="brand-block">
+        <div class="logo-box">
+            <img src="https://placeholder.com" alt="Sponsor">
         </div>
-        <div id="timer" class="timer">00:00</div>
+        <div id="timer" class="time-display">00:00</div>
     </div>
     
-    <div class="match">
-        <div class="row">
-            <div id="hN_box" class="name"><span id="hN">HOME TEAM</span></div>
-            <div class="score"><span id="hS">0</span></div>
-            <div id="hC" class="cards"></div>
+    <div class="teams-container">
+        <!-- Ред Домакин -->
+        <div class="team-row">
+            <div id="hN" class="name-cell">ДОМАКИН</div>
+            <div id="hS" class="score-cell">0</div>
+            <div id="hC" class="cards-cell"></div>
         </div>
-        <div class="row">
-            <div id="aN_box" class="name"><span id="aN">AWAY TEAM</span></div>
-            <div class="score"><span id="aS">0</span></div>
-            <div id="aC" class="cards"></div>
+        <!-- Ред Гост -->
+        <div class="team-row">
+            <div id="aN" class="name-cell">ГОСТ</div>
+            <div id="aS" class="score-cell">0</div>
+            <div id="aC" class="cards-cell"></div>
         </div>
     </div>
 </div>
@@ -99,44 +97,48 @@
     const socket = io();
     let lastH = 0, lastA = 0;
 
+    // Функция за контраст на текста спрямо цвета на фона
     function getContrast(hex){
+        if(!hex) return '#ffffff';
         hex = hex.replace('#','');
         const r = parseInt(hex.substr(0,2),16), g = parseInt(hex.substr(2,2),16), b = parseInt(hex.substr(4,2),16);
         return ((r*299)+(g*587)+(b*114))/1000 >= 128 ? '#000000' : '#ffffff';
     }
 
     socket.on('update', (data) => {
+        // Имена и Цветове
         const hn = document.getElementById('hN'), an = document.getElementById('aN');
-        const hBox = document.getElementById('hN_box'), aBox = document.getElementById('aN_box');
-        
         hn.innerText = data.homeName; an.innerText = data.awayName;
-        hBox.style.backgroundColor = data.homeColor || '#ffffff';
-        hBox.style.color = getContrast(data.homeColor);
-        aBox.style.backgroundColor = data.awayColor || '#ffffff';
-        aBox.style.color = getContrast(data.awayColor);
+        hn.style.backgroundColor = data.homeColor || '#000000';
+        hn.style.color = getContrast(data.homeColor);
+        an.style.backgroundColor = data.awayColor || '#000000';
+        an.style.color = getContrast(data.awayColor);
 
+        // Резултат
         const hs = document.getElementById('hS'), as = document.getElementById('aS');
-        if(data.home !== lastH) { hs.parentElement.classList.add('pop'); setTimeout(()=>hs.parentElement.classList.remove('pop'),400); lastH = data.home; }
-        if(data.away !== lastA) { as.parentElement.classList.add('pop'); setTimeout(()=>as.parentElement.classList.remove('pop'),400); lastA = data.away; }
+        if(data.home !== lastH) { hs.classList.add('goal-flash'); setTimeout(()=>hs.classList.remove('goal-flash'), 500); lastH = data.home; }
+        if(data.away !== lastA) { as.classList.add('goal-flash'); setTimeout(()=>as.classList.remove('goal-flash'), 500); lastA = data.away; }
         hs.innerText = data.home; as.innerText = data.away;
 
+        // Време
         const m = Math.floor(data.seconds / 60).toString().padStart(2, '0');
         const s = (data.seconds % 60).toString().padStart(2, '0');
         document.getElementById('timer').innerText = `${m}:${s}`;
-        
-        renderC('hC', data.homeRedCards); renderC('aC', data.awayRedCards);
+
+        // Картони
+        renderCards('hC', data.homeRedCards);
+        renderCards('aC', data.awayRedCards);
     });
 
-    function renderC(id, c) { 
-        const r = document.getElementById(id); r.innerHTML = ''; 
-        for(let i=0; i<c; i++) r.innerHTML += '<div class="red-card"></div>';
+    function renderCards(id, count) {
+        const container = document.getElementById(id);
+        container.innerHTML = '';
+        for(let i=0; i<count; i++) {
+            const card = document.createElement('div');
+            card.className = 'red-card-icon';
+            container.appendChild(card);
+        }
     }
-    
-    const b = document.getElementById('board');
-    let x=0, y=0, dx=0, dy=0, active=false;
-    b.onmousedown = (e) => { active=true; dx=e.clientX-x; dy=e.clientY-y; };
-    window.onmousemove = (e) => { if(active){ x=e.clientX-dx; y=e.clientY-dy; b.style.transform=`translate(${x}px,${y}px)`; } };
-    window.onmouseup = () => active=false;
 </script>
 </body>
 </html>
