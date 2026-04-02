@@ -1,119 +1,163 @@
 <!DOCTYPE html>
-<html>
+<html lang="bg">
 <head>
     <meta charset="UTF-8">
     <style>
         body { 
-            font-family: 'Arial', sans-serif; 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
             background: transparent; 
             margin: 0; 
-            padding: 10px; 
+            padding: 0; 
             color: white; 
             overflow: hidden;
-        }
-        .scoreboard { 
-            display: flex; 
-            align-items: center; 
-            background: rgba(0, 0, 0, 0.65); 
-            padding: 6px 12px; 
-            border-radius: 6px; 
-            width: fit-content;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            transform: scale(0.85); 
-            transform-origin: top left; 
-            gap: 10px;
-        }
-        
-        .timer { 
-            font-size: 24px; 
-            color: #00ff00; 
-            font-family: monospace; 
-            padding-right: 8px;
-            border-right: 1px solid rgba(255,255,255,0.2);
-            min-width: 65px;
+            height: 100vh;
+            width: 100vw;
         }
 
-        .team-block {
+        /* Контейнер горе вдясно */
+        .scoreboard-wrapper {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            display: flex;
+            align-items: stretch;
+            filter: drop-shadow(0 4px 10px rgba(0,0,0,0.6));
+            transform: scale(1); /* Може да се промени за мащабиране */
+            transform-origin: top right;
+        }
+
+        /* Ляво: Спонсор + Таймер */
+        .brand-side {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 2px;
+            justify-content: center;
+            background: #111;
+            padding: 8px 12px;
+            border-right: 2px solid rgba(255,255,255,0.1);
+            min-width: 70px;
+            border-radius: 6px 0 0 6px;
         }
+
+        .sponsor-logo {
+            width: 45px;
+            height: 45px;
+            background: #fff;
+            /* Модерна шестоъгълна форма (футболна топка) */
+            clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 5px;
+        }
+
+        .sponsor-logo img {
+            max-width: 75%;
+            max-height: 75%;
+            object-fit: contain;
+        }
+
+        .timer { 
+            font-size: 18px; 
+            color: #00ff00; 
+            font-weight: 800;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        /* Дясно: Отбори и Резултати */
+        .match-side {
+            display: flex;
+            flex-direction: column;
+            background: rgba(0, 0, 0, 0.85);
+            border-radius: 0 6px 6px 0;
+            overflow: hidden;
+        }
+
+        .team-row {
+            display: flex;
+            align-items: center;
+            height: 38px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .team-row:last-child { border-bottom: none; }
 
         .team-name { 
-            font-size: 20px; 
-            font-weight: bold; 
-            text-transform: uppercase; 
-            padding: 4px 12px; 
-            border-radius: 4px;
-            white-space: nowrap; 
-            transition: background 0.5s, color 0.5s;
+            width: 210px; /* Оптимално за 21 символа */
+            padding: 0 15px;
+            font-size: 17px; 
+            font-weight: 700; 
+            text-transform: uppercase;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 38px;
+            transition: background 0.5s;
         }
 
-        /* КОРЕКЦИЯ: Лентата се скрива автоматично, когато е празна */
+        .score-cell {
+            width: 50px;
+            background: rgba(255, 255, 255, 0.08);
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: 900;
+            color: #ffcc00;
+            border-left: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Индикатори за червени картони */
         .red-cards-container {
             display: flex;
             gap: 3px;
-            height: 10px; /* Фиксирана височина, за да не "подскача" таблото */
-        }
-        .red-cards-container:empty {
-            display: none; /* Скрива се напълно, ако няма картони */
+            padding: 0 8px;
         }
 
         .red-card-icon {
             width: 7px;
-            height: 11px;
-            background-color: #ff0000;
+            height: 10px;
+            background: #ff3b30;
             border-radius: 1px;
-            box-shadow: 0 0 5px rgba(255, 0, 0, 0.8);
-            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 0 5px rgba(255,0,0,0.5);
         }
 
-        .score-container {
-            display: flex;
-            align-items: center;
-            background: rgba(0, 0, 0, 0.3); 
-            padding: 2px 10px;
-            border-radius: 4px;
+        /* Анимация при гол */
+        .score-pop { animation: pop 0.5s ease-out; }
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.4); color: #fff; background: #ffcc00; }
+            100% { transform: scale(1); }
         }
-
-        .score { 
-            font-size: 28px; 
-            font-weight: bold; 
-            color: #ffcc00; 
-            min-width: 20px; 
-            text-align: center;
-            transition: transform 0.3s ease-out;
-            display: inline-block;
-        }
-
-        .score-pop {
-            transform: scale(1.4);
-            color: #ffffff !important;
-        }
-
-        .separator { font-size: 22px; margin: 0 3px; color: #ccc; }
     </style>
 </head>
 <body>
 
-    <div class="scoreboard">
-        <div id="timer" class="timer">00:00</div>
-        
-        <div class="team-block">
-            <div id="homeName" class="team-name">HOME</div>
-            <div id="homeCards" class="red-cards-container"></div>
+    <div class="scoreboard-wrapper">
+        <!-- Секция Спонсор и Време -->
+        <div class="brand-side">
+            <div class="sponsor-logo">
+                <!-- Път към вашето лого -->
+                <img src="https://placeholder.com" alt="Logo">
+            </div>
+            <div id="timer" class="timer">00:00</div>
         </div>
-        
-        <div class="score-container">
-            <div id="homeScore" class="score">0</div>
-            <div class="separator">:</div>
-            <div id="awayScore" class="score">0</div>
-        </div>
-        
-        <div class="team-block">
-            <div id="awayName" class="team-name">AWAY</div>
-            <div id="awayCards" class="red-cards-container"></div>
+
+        <!-- Секция Отбори -->
+        <div class="match-side">
+            <!-- Ред Домакин -->
+            <div class="team-row">
+                <div id="homeName" class="team-name">HOME</div>
+                <div id="homeScore" class="score-cell">0</div>
+                <div id="homeCards" class="red-cards-container"></div>
+            </div>
+            <!-- Ред Гост -->
+            <div class="team-row">
+                <div id="awayName" class="team-name">AWAY</div>
+                <div id="awayScore" class="score-cell">0</div>
+                <div id="awayCards" class="red-cards-container"></div>
+            </div>
         </div>
     </div>
 
@@ -131,7 +175,7 @@
 
         function updateRedCards(elementId, count) {
             const container = document.getElementById(elementId);
-            container.innerHTML = ''; // Изчиства всичко
+            container.innerHTML = '';
             if (count > 0) {
                 for (let i = 0; i < count; i++) {
                     const card = document.createElement('div');
@@ -143,7 +187,7 @@
 
         function animateScore(el) {
             el.classList.add('score-pop');
-            setTimeout(() => el.classList.remove('score-pop'), 400);
+            setTimeout(() => el.classList.remove('score-pop'), 500);
         }
 
         function getContrastYIQ(hexcolor){
@@ -158,19 +202,21 @@
         }
 
         socket.on('update', (data) => {
-            document.getElementById('homeName').innerText = data.homeName;
-            document.getElementById('awayName').innerText = data.awayName;
-            
+            const homeEl = document.getElementById('homeName');
+            const awayEl = document.getElementById('awayName');
             const hScoreEl = document.getElementById('homeScore');
             const aScoreEl = document.getElementById('awayScore');
 
+            homeEl.innerText = data.homeName;
+            awayEl.innerText = data.awayName;
+            
             if (data.homeColor) {
-                document.getElementById('homeName').style.backgroundColor = data.homeColor;
-                document.getElementById('homeName').style.color = getContrastYIQ(data.homeColor);
+                homeEl.style.backgroundColor = data.homeColor;
+                homeEl.style.color = getContrastYIQ(data.homeColor);
             }
             if (data.awayColor) {
-                document.getElementById('awayName').style.backgroundColor = data.awayColor;
-                document.getElementById('awayName').style.color = getContrastYIQ(data.awayColor);
+                awayEl.style.backgroundColor = data.awayColor;
+                awayEl.style.color = getContrastYIQ(data.awayColor);
             }
 
             if (data.home !== lastScore.home) { animateScore(hScoreEl); lastScore.home = data.home; }
@@ -179,14 +225,12 @@
             hScoreEl.innerText = data.home;
             aScoreEl.innerText = data.away;
 
-            // КОРЕКЦИЯ: Директно обновяване на времето от основния пакет
             document.getElementById('timer').innerText = formatTime(data.seconds);
 
             updateRedCards('homeCards', data.homeRedCards);
             updateRedCards('awayCards', data.awayRedCards);
         });
 
-        // КОРЕКЦИЯ: Приемаме обекта и взимаме само числото
         socket.on('timerUpdate', (data) => {
             const sec = typeof data === 'object' ? data.seconds : data;
             document.getElementById('timer').innerText = formatTime(sec);
