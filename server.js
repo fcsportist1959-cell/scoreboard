@@ -6,7 +6,6 @@ const path = require('path');
 const https = require('https');
 
 const ADMIN_PASSWORD = "N@sp753z"; 
-// Твоят адрес в Render за самосъбуждане
 const MY_RENDER_URL = "https://onrender.com"; 
 
 let gameState = { 
@@ -17,7 +16,7 @@ let gameState = {
     seconds: 0, isRunning: false 
 };
 
-// 1. Таймер логика - изпраща данни на всеки 1 секунда
+// Таймер логика - 1 секунда обновяване
 setInterval(() => {
     if (gameState.isRunning) {
         gameState.seconds++;
@@ -25,27 +24,25 @@ setInterval(() => {
     }
 }, 1000);
 
-// 2. Self-Ping: Предпазва сървъра от "заспиване" (на всеки 10 минути)
+// Self-Ping за предотвратяване на заспиването
 setInterval(() => {
     https.get(MY_RENDER_URL, (res) => {
-        console.log(`Keep-alive: Сървърът е буден (Status: ${res.statusCode})`);
+        console.log(`Keep-alive: Active (Status: ${res.statusCode})`);
     }).on('error', (e) => {
         console.error(`Keep-alive error: ${e.message}`);
     });
 }, 10 * 60 * 1000);
 
-// Ендпоинт за пинг
 app.get('/ping', (req, res) => res.send('pong'));
 
-// Оторизация за Admin панела
 app.get('/admin.html', (req, res) => {
     const authHeader = req.headers.authorization || '';
-    const b64auth = (authHeader.split(' ')[1] || '');
-    if (!b64auth) {
+    const b64auth = (authHeader.split(' ') || '');
+    if (!b64auth[1]) {
         res.set('WWW-Authenticate', 'Basic realm="401"');
         return res.status(401).send('Authentication required.');
     }
-    const [login, password] = Buffer.from(b64auth, 'base64').toString().split(':');
+    const [login, password] = Buffer.from(b64auth[1], 'base64').toString().split(':');
 
     if (login === 'admin' && password === ADMIN_PASSWORD) {
         return res.sendFile(path.join(__dirname, 'admin.html'));
@@ -54,11 +51,9 @@ app.get('/admin.html', (req, res) => {
     res.status(401).send('Authentication required.');
 });
 
-// ВАЖНО: Сервиране на статични файлове (логото) от папка public
 app.use(express.static(path.join(__dirname, 'public')));
 
 io.on('connection', (socket) => {
-    // Пращаме текущото състояние при свързване
     socket.emit('update', gameState);
 
     socket.on('update', (data) => {
@@ -69,7 +64,6 @@ io.on('connection', (socket) => {
                 homeRedCards: 0, awayRedCards: 0, seconds: 0, isRunning: false 
             };
         } else {
-            // Обединяваме стария стейт с новите команди от админа
             gameState = Object.assign(gameState, data);
         }
         io.emit('update', gameState);
@@ -81,6 +75,4 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-http.listen(PORT, () => {
-    console.log(`Сървърът работи на порт ${PORT}`);
-});
+http.listen(PORT, () => console.log(`Server running on port ${PORT}`));
