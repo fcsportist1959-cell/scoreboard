@@ -20,14 +20,14 @@
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             border-left: 6px solid #ffcc00;
             border-radius: 8px 0 0 8px;
-            min-width: 110px;
+            min-width: 115px;
         }
 
         .logo-box { 
-            width: 105px; height: 75px; 
+            width: 110px; height: 80px; 
             background: #ffffff; 
             border-radius: 4px;
-            display: flex; align-items: center; justify-content: center; margin-bottom: 8px;
+            display: flex; align-items: center; justify-content: center; margin-bottom: 10px;
             padding: 5px;
             box-shadow: inset 0 0 8px rgba(0,0,0,0.1);
         }
@@ -51,31 +51,31 @@
             border-radius: 0 8px 8px 0;
         }
 
-        .team-row { display: flex; height: 55px; align-items: center; }
+        .team-row { display: flex; height: 60px; align-items: center; }
 
         .name-cell { 
-            width: 330px; padding: 0 25px; 
-            font-size: 26px; font-weight: 900; text-transform: uppercase;
+            width: 340px; padding: 0 25px; 
+            font-size: 28px; font-weight: 900; text-transform: uppercase;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            height: 100%; line-height: 55px;
+            height: 100%; line-height: 60px;
         }
 
         .score-cell { 
-            width: 70px; background: rgba(0,0,0,0.95); color: #ffcc00; 
+            width: 75px; background: rgba(0,0,0,0.95); color: #ffcc00; 
             display: flex; align-items: center; justify-content: center; 
-            font-size: 36px; font-weight: 900; height: 100%;
+            font-size: 38px; font-weight: 900; height: 100%;
             border-left: 1px solid rgba(255,255,255,0.2);
         }
 
-        .cards-cell { display: flex; gap: 5px; padding: 0 12px; }
+        .cards-cell { display: flex; gap: 6px; padding: 0 15px; }
         .red-card-icon { 
-            width: 15px; height: 22px; 
+            width: 16px; height: 24px; 
             background: #ff0000; border-radius: 2px; border: 2px solid white;
             box-shadow: 0 2px 6px rgba(0,0,0,0.5);
         }
 
         .goal-flash { animation: flash 0.6s ease-in-out; }
-        @keyframes flash { 50% { background: #ffffff !important; color: #000000 !important; } }
+        @keyframes flash { 50% { background: #ffffff !important; color: #000000 !important; transform: scale(1.05); } }
     </style>
 </head>
 <body>
@@ -83,8 +83,8 @@
 <div id="board" class="scoreboard">
     <div class="brand-block">
         <div class="logo-box">
-            <!-- Директен линк към логото на КФМ за сигурно зареждане -->
-            <img src="https://imgur.com" alt="KFM Logo">
+            <!-- Директен линк за сигурно зареждане на логото на КФМ -->
+            <img src="https://postimg.cc" alt="KFM Logo">
         </div>
         <div id="timer" class="time-display">00:00</div>
     </div>
