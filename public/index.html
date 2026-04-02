@@ -13,7 +13,6 @@
             cursor: grab;
         }
 
-        /* Блок за Спонсор и Таймер */
         .brand-block { 
             background: #1a1a1a; 
             padding: 15px 20px; 
@@ -30,7 +29,6 @@
             display: flex; align-items: center; justify-content: center; margin-bottom: 10px;
             box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
         }
-        /* ТУК Е ПЪТЯТ КЪМ ВАШЕТО ЛОГО */
         .logo-box img { max-width: 90%; max-height: 90%; object-fit: contain; }
 
         .time-display { 
@@ -38,22 +36,17 @@
             text-shadow: 0 0 5px rgba(0,0,0,0.5);
         }
 
-        /* Секция Отбори - Плътно долепени */
         .teams-container { 
             display: flex; flex-direction: column; 
             overflow: hidden;
             border-radius: 0 6px 6px 0;
         }
 
-        .team-row { 
-            display: flex; height: 55px; align-items: center; 
-        }
+        .team-row { display: flex; height: 55px; align-items: center; }
 
         .name-cell { 
             width: 320px; padding: 0 25px; 
-            font-size: 25px; /* УВЕЛИЧЕН ШРИФТ */
-            font-weight: 900; /* МАКСИМАЛНО УДЕБЕЛЕН */
-            text-transform: uppercase;
+            font-size: 25px; font-weight: 900; text-transform: uppercase;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
             height: 100%; line-height: 55px;
             transition: all 0.3s;
@@ -66,11 +59,7 @@
             border-left: 1px solid rgba(255,255,255,0.15);
         }
 
-        /* Картони */
-        .cards-cell { 
-            display: flex; gap: 5px; padding: 0 12px; 
-            background: transparent;
-        }
+        .cards-cell { display: flex; gap: 5px; padding: 0 12px; }
         .red-card-icon { 
             width: 14px; height: 20px; 
             background: #ff0000; border-radius: 2px; border: 1.5px solid white;
@@ -86,7 +75,6 @@
 <div id="board" class="scoreboard">
     <div class="brand-block">
         <div class="logo-box">
-            <!-- Render автоматично ще намери файла, ако е в основната папка -->
             <img src="/logo.png" alt="Sponsor" onerror="this.src='https://placeholder.com'">
         </div>
         <div id="timer" class="time-display">00:00</div>
@@ -126,10 +114,8 @@
 
         hn.innerText = data.homeName;
         an.innerText = data.awayName;
-        
         hn.style.backgroundColor = data.homeColor || '#333';
         hn.style.color = getContrast(data.homeColor);
-        
         an.style.backgroundColor = data.awayColor || '#444';
         an.style.color = getContrast(data.awayColor);
 
@@ -157,7 +143,6 @@
         }
     }
 
-    // Drag & Drop логика
     const board = document.getElementById('board');
     let x=0, y=0, dx=0, dy=0, active=false;
     board.onmousedown = (e) => { active=true; dx=e.clientX-x; dy=e.clientY-y; };
