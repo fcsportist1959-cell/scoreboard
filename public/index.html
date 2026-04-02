@@ -4,123 +4,62 @@
     <meta charset="UTF-8">
     <style>
         body { margin: 0; padding: 0; background: transparent; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
-        
-        .scoreboard-draggable {
-            position: absolute; top: 20px; left: 20px;
-            display: flex; align-items: stretch;
-            cursor: grab; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.4));
-            z-index: 1000;
-        }
-
-        /* Осмоъгълник и Таймер */
-        .brand-side {
-            background: #2c3e50; padding: 15px;
-            display: flex; flex-direction: column; align-items: center;
-            border-radius: 10px 0 0 10px; border-right: 1px solid rgba(255,255,255,0.2);
-            min-width: 90px;
-        }
-        .octagon {
-            width: 65px; height: 65px; background: white;
-            clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
-            display: flex; align-items: center; justify-content: center; margin-bottom: 10px;
-        }
+        .board { position: absolute; top: 20px; left: 20px; display: flex; align-items: stretch; cursor: grab; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.4)); z-index: 1000; }
+        .brand { background: #2c3e50; padding: 15px; display: flex; flex-direction: column; align-items: center; border-radius: 10px 0 0 10px; border-right: 1px solid rgba(255,255,255,0.2); min-width: 90px; }
+        .octagon { width: 65px; height: 65px; background: white; clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%); display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
         .timer { font-size: 22px; color: #00ff00; font-weight: bold; font-family: monospace; }
-
-        /* Отбори и Резултати */
-        .match-side { background: #fdfdfd; border-radius: 0 10px 10px 0; overflow: hidden; display: flex; flex-direction: column; }
-        
-        .team-row { display: flex; height: 45px; align-items: center; border-bottom: 1px solid #eee; }
-        .team-row:last-child { border-bottom: none; }
-
-        .team-name { 
-            width: 240px; /* Увеличено за 22 символа */
-            padding: 0 15px; font-size: 19px; font-weight: 800; 
-            text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            height: 100%; line-height: 45px; transition: all 0.4s;
-        }
-
-        .score-cell {
-            width: 55px; background: #34495e; color: #f1c40f;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 26px; font-weight: 900; height: 100%;
-        }
-
-        .cards-area { display: flex; gap: 4px; padding: 0 10px; min-width: 20px; }
+        .match { background: #fdfdfd; border-radius: 0 10px 10px 0; overflow: hidden; display: flex; flex-direction: column; }
+        .row { display: flex; height: 45px; align-items: center; border-bottom: 1px solid #eee; }
+        .name { width: 250px; padding: 0 15px; font-size: 19px; font-weight: 800; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; height: 100%; line-height: 45px; transition: all 0.4s; }
+        .score { width: 55px; background: #34495e; color: #f1c40f; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 900; height: 100%; }
+        .cards { display: flex; gap: 4px; padding: 0 10px; min-width: 20px; }
         .red-card { width: 8px; height: 12px; background: #e74c3c; border-radius: 1px; }
-
-        .score-pop { animation: pop 0.5s ease; }
-        @keyframes pop { 50% { transform: scale(1.4); } }
+        .pop { animation: p 0.5s ease; }
+        @keyframes p { 50% { transform: scale(1.4); } }
     </style>
 </head>
 <body>
-
-<div id="board" class="scoreboard-draggable">
-    <div class="brand-side">
+<div id="board" class="board">
+    <div class="brand">
         <div class="octagon"><img src="https://placeholder.com" style="width:70%"></div>
         <div id="timer" class="timer">00:00</div>
     </div>
-    <div class="match-side">
-        <div class="team-row">
-            <div id="hName" class="team-name">HOME</div>
-            <div id="hScore" class="score-cell">0</div>
-            <div id="hCards" class="cards-area"></div>
-        </div>
-        <div class="team-row">
-            <div id="aName" class="team-name">AWAY</div>
-            <div id="aScore" class="score-cell">0</div>
-            <div id="aCards" class="cards-area"></div>
-        </div>
+    <div class="match">
+        <div class="row"><div id="hN" class="name">HOME</div><div id="hS" class="score">0</div><div id="hC" class="cards"></div></div>
+        <div class="row"><div id="aN" class="name">AWAY</div><div id="aS" class="score">0</div><div id="aC" class="cards"></div></div>
     </div>
 </div>
-
 <script src="/socket.io/socket.io.js"></script>
 <script>
     const socket = io();
     let lastH = 0, lastA = 0;
-
     function getContrast(hex){
         hex = hex.replace('#','');
         const r = parseInt(hex.substr(0,2),16), g = parseInt(hex.substr(2,2),16), b = parseInt(hex.substr(4,2),16);
         return ((r*299)+(g*587)+(b*114))/1000 >= 128 ? '#000000' : '#ffffff';
     }
-
     socket.on('update', (data) => {
-        const hEl = document.getElementById('hName'), aEl = document.getElementById('aName');
-        const hsEl = document.getElementById('hScore'), asEl = document.getElementById('aScore');
-
-        hEl.innerText = data.homeName;
-        aEl.innerText = data.awayName;
-        
-        // Цветове
-        hEl.style.backgroundColor = data.homeColor;
-        hEl.style.color = getContrast(data.homeColor);
-        aEl.style.backgroundColor = data.awayColor;
-        aEl.style.color = getContrast(data.awayColor);
-
-        // Резултат анимация
-        if(data.home !== lastH) { hsEl.classList.add('score-pop'); setTimeout(()=>hsEl.classList.remove('score-pop'),500); lastH = data.home; }
-        if(data.away !== lastA) { asEl.classList.add('score-pop'); setTimeout(()=>asEl.classList.remove('score-pop'),500); lastA = data.away; }
-        hsEl.innerText = data.home; asEl.innerText = data.away;
-
-        // Време и картони
+        document.getElementById('hN').innerText = data.homeName;
+        document.getElementById('aN').innerText = data.awayName;
+        document.getElementById('hN').style.backgroundColor = data.homeColor;
+        document.getElementById('hN').style.color = getContrast(data.homeColor);
+        document.getElementById('aN').style.backgroundColor = data.awayColor;
+        document.getElementById('aN').style.color = getContrast(data.awayColor);
+        if(data.home !== lastH) { hS.classList.add('pop'); setTimeout(()=>hS.classList.remove('pop'),500); lastH = data.home; }
+        if(data.away !== lastA) { aS.classList.add('pop'); setTimeout(()=>aS.classList.remove('pop'),500); lastA = data.away; }
+        hS.innerText = data.home; aS.innerText = data.away;
         const m = Math.floor(data.seconds / 60).toString().padStart(2, '0');
         const s = (data.seconds % 60).toString().padStart(2, '0');
         document.getElementById('timer').innerText = `${m}:${s}`;
-
-        updateCards('hCards', data.homeRedCards);
-        updateCards('aCards', data.awayRedCards);
+        renderC('hC', data.homeRedCards); renderC('aC', data.awayRedCards);
     });
-
-    function updateCards(id, count) {
-        const res = document.getElementById(id); res.innerHTML = '';
-        for(let i=0; i<count; i++) res.innerHTML += '<div class="red-card"></div>';
-    }
-
+    function renderC(id, c) { const r = document.getElementById(id); r.innerHTML = ''; for(let i=0; i<c; i++) r.innerHTML += '<div class="red-card"></div>'; }
+    
     // Drag logic
-    const b = document.getElementById('board');
+    const board = document.getElementById('board');
     let x=0, y=0, dx=0, dy=0, active=false;
-    b.onmousedown = (e) => { active=true; dx=e.clientX-x; dy=e.clientY-y; };
-    window.onmousemove = (e) => { if(active){ x=e.clientX-dx; y=e.clientY-dy; b.style.transform=`translate(${x}px,${y}px)`; } };
+    board.onmousedown = (e) => { active=true; dx=e.clientX-x; dy=e.clientY-y; };
+    window.onmousemove = (e) => { if(active){ x=e.clientX-dx; y=e.clientY-dy; board.style.transform=`translate(${x}px,${y}px)`; } };
     window.onmouseup = () => active=false;
 </script>
 </body>
