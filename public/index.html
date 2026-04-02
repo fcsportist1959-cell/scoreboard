@@ -8,7 +8,7 @@
         .scoreboard { 
             position: absolute; top: 25px; left: 25px; 
             display: flex; align-items: stretch;
-            filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
+            filter: drop-shadow(0 4px 12px rgba(0,0,0,0.6));
             z-index: 1000;
             cursor: grab;
         }
@@ -16,89 +16,88 @@
         /* Блок за Спонсор и Таймер */
         .brand-block { 
             background: #1a1a1a; 
-            padding: 12px 18px; 
+            padding: 15px 20px; 
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            border-left: 5px solid #ffcc00;
-            border-radius: 4px 0 0 4px;
-            min-width: 90px;
+            border-left: 6px solid #ffcc00;
+            border-radius: 6px 0 0 6px;
+            min-width: 100px;
         }
 
         .logo-box { 
-            width: 75px; height: 75px; 
+            width: 85px; height: 85px; 
             background: #ffffff; 
-            border-radius: 4px;
-            display: flex; align-items: center; justify-content: center; margin-bottom: 8px;
+            border-radius: 5px;
+            display: flex; align-items: center; justify-content: center; margin-bottom: 10px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
         }
+        /* ТУК Е ПЪТЯТ КЪМ ВАШЕТО ЛОГО */
         .logo-box img { max-width: 90%; max-height: 90%; object-fit: contain; }
 
         .time-display { 
-            font-size: 24px; color: #ffffff; font-weight: bold; font-family: 'Courier New', monospace; 
+            font-size: 26px; color: #ffffff; font-weight: 900; font-family: 'Courier New', monospace; 
+            text-shadow: 0 0 5px rgba(0,0,0,0.5);
         }
 
         /* Секция Отбори - Плътно долепени */
         .teams-container { 
             display: flex; flex-direction: column; 
-            background: transparent; /* Премахваме черния фон на контейнера */
             overflow: hidden;
-            border-radius: 0 4px 4px 0;
+            border-radius: 0 6px 6px 0;
         }
 
         .team-row { 
-            display: flex; height: 50px; align-items: center; 
-            /* Без марж и без бордер, за да се залепят цветовете */
+            display: flex; height: 55px; align-items: center; 
         }
 
         .name-cell { 
-            width: 280px; padding: 0 20px; 
-            font-size: 22px; font-weight: 800; text-transform: uppercase;
+            width: 320px; padding: 0 25px; 
+            font-size: 25px; /* УВЕЛИЧЕН ШРИФТ */
+            font-weight: 900; /* МАКСИМАЛНО УДЕБЕЛЕН */
+            text-transform: uppercase;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            height: 100%; line-height: 50px;
-            transition: background 0.3s;
+            height: 100%; line-height: 55px;
+            transition: all 0.3s;
         }
 
         .score-cell { 
-            width: 60px; background: rgba(0,0,0,0.9); color: #ffcc00; 
+            width: 65px; background: rgba(0,0,0,0.92); color: #ffcc00; 
             display: flex; align-items: center; justify-content: center; 
-            font-size: 30px; font-weight: 900; height: 100%;
-            border-left: 1px solid rgba(255,255,255,0.1);
+            font-size: 34px; font-weight: 900; height: 100%;
+            border-left: 1px solid rgba(255,255,255,0.15);
         }
 
-        /* Картони - Появяват се върху цвета на отбора */
+        /* Картони */
         .cards-cell { 
-            display: flex; gap: 4px; padding: 0 10px; 
+            display: flex; gap: 5px; padding: 0 12px; 
             background: transparent;
         }
         .red-card-icon { 
-            width: 12px; height: 18px; 
-            background: #ff0000; border-radius: 2px; border: 1px solid white;
-            box-shadow: 0 0 5px rgba(0,0,0,0.3);
+            width: 14px; height: 20px; 
+            background: #ff0000; border-radius: 2px; border: 1.5px solid white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.4);
         }
 
         .goal-flash { animation: flash 0.6s ease-in-out; }
-        @keyframes flash { 50% { background: #ffffff; color: #000000; transform: scale(1.1); } }
+        @keyframes flash { 50% { background: #ffffff !important; color: #000000 !important; } }
     </style>
 </head>
 <body>
 
 <div id="board" class="scoreboard">
-    <!-- Спонсор и Време -->
     <div class="brand-block">
         <div class="logo-box">
-            <!-- Тук ще заредим вашето лого -->
-            <img src="https://placeholder.com" alt="Sponsor">
+            <!-- Render автоматично ще намери файла, ако е в основната папка -->
+            <img src="/logo.png" alt="Sponsor" onerror="this.src='https://placeholder.com'">
         </div>
         <div id="timer" class="time-display">00:00</div>
     </div>
     
-    <!-- Отбори -->
     <div class="teams-container">
-        <!-- Ред Домакин -->
         <div class="team-row">
             <div id="hN" class="name-cell">HOME</div>
             <div id="hS" class="score-cell">0</div>
             <div id="hC" class="cards-cell"></div>
         </div>
-        <!-- Ред Гост -->
         <div class="team-row">
             <div id="aN" class="name-cell">AWAY</div>
             <div id="aS" class="score-cell">0</div>
@@ -115,15 +114,16 @@
     function getContrast(hex){
         if(!hex) return '#ffffff';
         hex = hex.replace('#','');
+        if(hex.length === 3) hex = hex.split('').map(s => s+s).join('');
         const r = parseInt(hex.substr(0,2),16), g = parseInt(hex.substr(2,2),16), b = parseInt(hex.substr(4,2),16);
-        return ((r*299)+(g*587)+(b*114))/1000 >= 128 ? '#000000' : '#ffffff';
+        const yiq = ((r*299)+(g*587)+(b*114))/1000;
+        return (yiq >= 128) ? '#000000' : '#ffffff';
     }
 
     socket.on('update', (data) => {
         const hn = document.getElementById('hN'), an = document.getElementById('aN');
         const hs = document.getElementById('hS'), as = document.getElementById('aS');
 
-        // Обновяване имена и цветове
         hn.innerText = data.homeName;
         an.innerText = data.awayName;
         
@@ -133,19 +133,16 @@
         an.style.backgroundColor = data.awayColor || '#444';
         an.style.color = getContrast(data.awayColor);
 
-        // Обновяване резултат с анимация
         if(data.home !== lastH) { hs.classList.add('goal-flash'); setTimeout(()=>hs.classList.remove('goal-flash'), 600); lastH = data.home; }
         if(data.away !== lastA) { as.classList.add('goal-flash'); setTimeout(()=>as.classList.remove('goal-flash'), 600); lastA = data.away; }
         
         hs.innerText = data.home;
         as.innerText = data.away;
 
-        // Обновяване време
         const m = Math.floor(data.seconds / 60).toString().padStart(2, '0');
         const s = (data.seconds % 60).toString().padStart(2, '0');
         document.getElementById('timer').innerText = `${m}:${s}`;
 
-        // Обновяване картони
         renderCards('hC', data.homeRedCards);
         renderCards('aC', data.awayRedCards);
     });
@@ -160,7 +157,7 @@
         }
     }
 
-    // Drag & Drop
+    // Drag & Drop логика
     const board = document.getElementById('board');
     let x=0, y=0, dx=0, dy=0, active=false;
     board.onmousedown = (e) => { active=true; dx=e.clientX-x; dy=e.clientY-y; };
