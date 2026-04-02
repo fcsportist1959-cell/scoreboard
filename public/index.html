@@ -3,120 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <style>
-        body { margin: 0; padding: 0; background: transparent; font-family: 'Segoe UI', Roboto, Helvetica, sans-serif; overflow: hidden; }
+        body { margin: 0; padding: 0; background: transparent; font-family: 'Exo 2', sans-serif; overflow: hidden; }
         
         .board { 
             position: absolute; top: 25px; left: 25px; 
-            display: flex; align-items: stretch; 
-            cursor: grab; filter: drop-shadow(0 10px 25px rgba(0,0,0,0.4)); 
+            display: flex; align-items: stretch; gap: 5px;
+            cursor: grab; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5)); 
             z-index: 1000;
         }
 
-        /* Лява секция - Спонсор и Време */
+        /* Скосен блок за Спонсор и Таймер */
         .brand { 
-            background: linear-gradient(135deg, #1e272e 0%, #2f3640 100%);
-            padding: 20px 25px; 
+            background: #1e272e; 
+            padding: 15px 25px; 
             display: flex; flex-direction: column; align-items: center; 
-            border-radius: 25px 0 0 25px; 
-            border-right: 1px solid rgba(255,255,255,0.1); 
-            min-width: 110px;
+            transform: skewX(-10deg); /* СКОСЯВАНЕ */
+            border-left: 4px solid #f1c40f;
+            min-width: 100px;
         }
 
-        /* 16-ЪГЪЛНИК (Hexadecagon) */
-        .hexagon-16 { 
-            width: 90px; height: 90px;
+        /* Осмоъгълникът вътре е изправен (skew обратно), за да не криви логото */
+        .octagon-wrapper { 
+            transform: skewX(10deg); 
+            width: 80px; height: 80px;
             background: white; 
-            clip-path: polygon(
-                50% 0%, 69.1% 3.8%, 85.4% 14.6%, 96.2% 30.9%, 
-                100% 50%, 96.2% 69.1%, 85.4% 85.4%, 69.1% 96.2%, 
-                50% 100%, 30.9% 96.2%, 14.6% 85.4%, 3.8% 69.1%, 
-                0% 50%, 3.8% 30.9%, 14.6% 14.6%, 30.9% 3.8%
-            );
-            display: flex; align-items: center; justify-content: center; 
-            margin-bottom: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+            display: flex; align-items: center; justify-content: center; margin-bottom: 5px;
         }
-        .hexagon-16 img { width: 75%; height: 75%; object-fit: contain; }
+        .octagon-wrapper img { width: 70%; height: 70%; object-fit: contain; }
 
         .timer { 
-            font-size: 26px; color: #00ff00; font-weight: 800; 
-            font-family: 'Consolas', monospace;
-            text-shadow: 0 0 12px rgba(0,255,0,0.4);
+            transform: skewX(10deg);
+            font-size: 24px; color: #00ff00; font-weight: 800; font-family: monospace; 
         }
 
         /* Секция за отбори */
-        .match { 
-            display: flex; flex-direction: column; 
-            justify-content: center;
-            gap: 5px; 
-            padding: 5px 0;
-            background: transparent;
-        }
+        .match { display: flex; flex-direction: column; gap: 4px; }
 
-        .row { display: flex; height: 52px; align-items: center; }
+        .row { 
+            display: flex; height: 48px; align-items: center; 
+            transform: skewX(-10deg); /* СКОСЯВАНЕ на целия ред */
+            overflow: hidden;
+        }
 
         .name { 
-            width: 320px; 
-            padding: 0 25px; 
-            font-size: 22px; 
-            font-weight: 800; 
-            text-transform: uppercase; 
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
-            height: 100%; line-height: 52px; 
-            border-radius: 6px; 
-            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-            box-shadow: inset 0 -3px 6px rgba(0,0,0,0.1);
+            width: 310px; padding: 0 25px; 
+            font-size: 21px; font-weight: 800; text-transform: uppercase; 
+            height: 100%; line-height: 48px; 
+            /* Изправяме текста обратно */
+            display: flex; align-items: center;
         }
+        .name span { transform: skewX(10deg); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
 
         .score { 
-            width: 70px; 
-            background: #1e272e; 
-            color: #f1c40f; 
+            width: 65px; background: #2f3640; color: #f1c40f; 
             display: flex; align-items: center; justify-content: center; 
-            font-size: 30px; font-weight: 900; 
-            height: 100%;
-            margin-left: 3px;
-            border-radius: 6px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            font-size: 28px; font-weight: 900; height: 100%;
+            border-left: 2px solid rgba(255,255,255,0.1);
         }
+        .score span { transform: skewX(10deg); }
 
-        /* Заобляне само на крайните десни ъгли на резултата */
-        .row:first-child .score { border-radius: 6px 20px 6px 6px; }
-        .row:last-child .score { border-radius: 6px 6px 20px 6px; }
+        .cards { transform: skewX(10deg); display: flex; gap: 4px; padding-left: 10px; }
+        .red-card { width: 10px; height: 15px; background: #e74c3c; border-radius: 1px; }
 
-        .cards { display: flex; gap: 5px; padding: 0 10px; }
-        .red-card { 
-            width: 14px; height: 20px; 
-            background: linear-gradient(135deg, #ff4d4d, #b30000); 
-            border-radius: 3px; 
-            box-shadow: 0 3px 8px rgba(255,0,0,0.4);
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-
-        .pop { animation: p 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        @keyframes p { 50% { transform: scale(1.3); color: #fff; } }
+        .pop { animation: p 0.4s ease; }
+        @keyframes p { 50% { transform: scale(1.3) skewX(10deg); color: #fff; } }
     </style>
 </head>
 <body>
 
 <div id="board" class="board">
     <div class="brand">
-        <div class="hexagon-16">
-            <!-- Място за логото на спонсора -->
-            <img src="https://placeholder.com" alt="Sponsor">
+        <div class="octagon-wrapper">
+            <img src="https://placeholder.com" alt="Logo">
         </div>
         <div id="timer" class="timer">00:00</div>
     </div>
     
     <div class="match">
         <div class="row">
-            <div id="hN" class="name">HOME TEAM</div>
-            <div id="hS" class="score">0</div>
+            <div id="hN_box" class="name"><span id="hN">HOME TEAM</span></div>
+            <div class="score"><span id="hS">0</span></div>
             <div id="hC" class="cards"></div>
         </div>
         <div class="row">
-            <div id="aN" class="name">AWAY TEAM</div>
-            <div id="aS" class="score">0</div>
+            <div id="aN_box" class="name"><span id="aN">AWAY TEAM</span></div>
+            <div class="score"><span id="aS">0</span></div>
             <div id="aC" class="cards"></div>
         </div>
     </div>
@@ -128,7 +100,6 @@
     let lastH = 0, lastA = 0;
 
     function getContrast(hex){
-        if(!hex) return '#ffffff';
         hex = hex.replace('#','');
         const r = parseInt(hex.substr(0,2),16), g = parseInt(hex.substr(2,2),16), b = parseInt(hex.substr(4,2),16);
         return ((r*299)+(g*587)+(b*114))/1000 >= 128 ? '#000000' : '#ffffff';
@@ -136,21 +107,23 @@
 
     socket.on('update', (data) => {
         const hn = document.getElementById('hN'), an = document.getElementById('aN');
+        const hBox = document.getElementById('hN_box'), aBox = document.getElementById('aN_box');
+        
         hn.innerText = data.homeName; an.innerText = data.awayName;
-        hn.style.backgroundColor = data.homeColor || '#ffffff';
-        hn.style.color = getContrast(data.homeColor);
-        an.style.backgroundColor = data.awayColor || '#ffffff';
-        an.style.color = getContrast(data.awayColor);
+        hBox.style.backgroundColor = data.homeColor || '#ffffff';
+        hBox.style.color = getContrast(data.homeColor);
+        aBox.style.backgroundColor = data.awayColor || '#ffffff';
+        aBox.style.color = getContrast(data.awayColor);
 
         const hs = document.getElementById('hS'), as = document.getElementById('aS');
-        if(data.home !== lastH) { hs.classList.add('pop'); setTimeout(()=>hs.classList.remove('pop'),500); lastH = data.home; }
-        if(data.away !== lastA) { as.classList.add('pop'); setTimeout(()=>as.classList.remove('pop'),500); lastA = data.away; }
+        if(data.home !== lastH) { hs.parentElement.classList.add('pop'); setTimeout(()=>hs.parentElement.classList.remove('pop'),400); lastH = data.home; }
+        if(data.away !== lastA) { as.parentElement.classList.add('pop'); setTimeout(()=>as.parentElement.classList.remove('pop'),400); lastA = data.away; }
         hs.innerText = data.home; as.innerText = data.away;
 
         const m = Math.floor(data.seconds / 60).toString().padStart(2, '0');
         const s = (data.seconds % 60).toString().padStart(2, '0');
         document.getElementById('timer').innerText = `${m}:${s}`;
-
+        
         renderC('hC', data.homeRedCards); renderC('aC', data.awayRedCards);
     });
 
