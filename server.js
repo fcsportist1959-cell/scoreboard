@@ -3,8 +3,10 @@ const app = express();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
 const path = require('path');
+const https = require('https');
 
 const ADMIN_PASSWORD = "N@sp753z"; 
+const MY_RENDER_URL = "https://onrender.com"; 
 
 let gameState = { 
     home: 0, away: 0, 
@@ -22,9 +24,20 @@ setInterval(() => {
     }
 }, 1000);
 
+// Самосъбуждане (Self-Ping) на всеки 10 минути
+setInterval(() => {
+    https.get(MY_RENDER_URL, (res) => {
+        console.log(`Self-ping: Status ${res.statusCode} - Awake.`);
+    }).on('error', (e) => {
+        console.error(`Self-ping error: ${e.message}`);
+    });
+}, 10 * 60 * 1000);
+
+app.get('/ping', (req, res) => res.send('pong'));
+
 app.get('/admin.html', (req, res) => {
     const authHeader = req.headers.authorization || '';
-    const b64auth = authHeader.split(' ')[1] || '';
+    const b64auth = (authHeader.split(' ')[1] || '');
     const [login, password] = Buffer.from(b64auth, 'base64').toString().split(':');
 
     if (login === 'admin' && password === ADMIN_PASSWORD) {
@@ -47,7 +60,6 @@ io.on('connection', (socket) => {
                 homeRedCards: 0, awayRedCards: 0, seconds: 0, isRunning: false 
             };
         } else {
-            // Ключово: Обединяваме стария стейт с новите данни
             gameState = Object.assign(gameState, data);
         }
         io.emit('update', gameState);
