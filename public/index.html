@@ -4,62 +4,162 @@
     <meta charset="UTF-8">
     <style>
         body { margin: 0; padding: 0; background: transparent; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
-        .board { position: absolute; top: 20px; left: 20px; display: flex; align-items: stretch; cursor: grab; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.4)); z-index: 1000; }
-        .brand { background: #2c3e50; padding: 15px; display: flex; flex-direction: column; align-items: center; border-radius: 10px 0 0 10px; border-right: 1px solid rgba(255,255,255,0.2); min-width: 90px; }
-        .octagon { width: 65px; height: 65px; background: white; clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%); display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
-        .timer { font-size: 22px; color: #00ff00; font-weight: bold; font-family: monospace; }
-        .match { background: #fdfdfd; border-radius: 0 10px 10px 0; overflow: hidden; display: flex; flex-direction: column; }
-        .row { display: flex; height: 45px; align-items: center; border-bottom: 1px solid #eee; }
-        .name { width: 250px; padding: 0 15px; font-size: 19px; font-weight: 800; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; height: 100%; line-height: 45px; transition: all 0.4s; }
-        .score { width: 55px; background: #34495e; color: #f1c40f; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 900; height: 100%; }
-        .cards { display: flex; gap: 4px; padding: 0 10px; min-width: 20px; }
-        .red-card { width: 8px; height: 12px; background: #e74c3c; border-radius: 1px; }
+        
+        .board { 
+            position: absolute; top: 25px; left: 25px; 
+            display: flex; align-items: stretch; 
+            cursor: grab; filter: drop-shadow(0 6px 15px rgba(0,0,0,0.5)); 
+            z-index: 1000;
+            background: transparent; /* Напълно прозрачно */
+        }
+
+        /* Осмоъгълник и Таймер */
+        .brand { 
+            background: rgba(44, 62, 80, 0.9); /* Тъмен акцент само тук */
+            padding: 20px; 
+            display: flex; flex-direction: column; align-items: center; 
+            border-radius: 12px 0 0 12px; 
+            border-right: 1px solid rgba(255,255,255,0.1); 
+            min-width: 110px; 
+        }
+
+        .octagon { 
+            width: 85px; height: 85px; /* Още по-голям осмоъгълник */
+            background: white; 
+            clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%); 
+            display: flex; align-items: center; justify-content: center; margin-bottom: 12px; 
+        }
+        .octagon img { width: 75%; height: 75%; object-fit: contain; }
+
+        .timer { font-size: 26px; color: #00ff00; font-weight: 800; font-family: monospace; }
+
+        /* Отбори и Резултати */
+        .match { 
+            background: transparent; /* Премахваме бялата лента */
+            display: flex; flex-direction: column; 
+            justify-content: center;
+        }
+
+        .row { 
+            display: flex; height: 55px; /* По-високи редове */
+            align-items: center; 
+            margin-bottom: 2px; /* Малко разстояние между отборите */
+        }
+
+        .name { 
+            width: 300px; /* По-голям размер за имената */
+            padding: 0 20px; 
+            font-size: 22px; /* По-голям шрифт */
+            font-weight: 800; 
+            text-transform: uppercase; 
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
+            height: 100%; line-height: 55px; 
+            transition: all 0.4s;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        .score { 
+            width: 65px; 
+            background: #1a252f; 
+            color: #f1c40f; 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 32px; font-weight: 900; 
+            height: 100%;
+            border-left: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Картони - Появяват се само при наличие */
+        .cards { 
+            display: flex; gap: 5px; padding: 0 10px; 
+            background: transparent; /* Без фон */
+        }
+        .red-card { 
+            width: 12px; height: 18px; 
+            background: #e74c3c; border-radius: 2px; 
+            box-shadow: 0 0 8px rgba(231, 76, 60, 0.6);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
         .pop { animation: p 0.5s ease; }
-        @keyframes p { 50% { transform: scale(1.4); } }
+        @keyframes p { 50% { transform: scale(1.3); } }
     </style>
 </head>
 <body>
+
 <div id="board" class="board">
     <div class="brand">
-        <div class="octagon"><img src="https://placeholder.com" style="width:70%"></div>
+        <div class="octagon">
+            <!-- Тук сложете логото на спонсора -->
+            <img src="https://placeholder.com" alt="Logo">
+        </div>
         <div id="timer" class="timer">00:00</div>
     </div>
+    
     <div class="match">
-        <div class="row"><div id="hN" class="name">HOME</div><div id="hS" class="score">0</div><div id="hC" class="cards"></div></div>
-        <div class="row"><div id="aN" class="name">AWAY</div><div id="aS" class="score">0</div><div id="aC" class="cards"></div></div>
+        <div class="row">
+            <div id="hN" class="name">HOME</div>
+            <div id="hS" class="score">0</div>
+            <div id="hC" class="cards"></div>
+        </div>
+        <div class="row">
+            <div id="aN" class="name">AWAY</div>
+            <div id="aS" class="score">0</div>
+            <div id="aC" class="cards"></div>
+        </div>
     </div>
 </div>
+
 <script src="/socket.io/socket.io.js"></script>
 <script>
     const socket = io();
     let lastH = 0, lastA = 0;
+
     function getContrast(hex){
+        if(!hex) return '#ffffff';
         hex = hex.replace('#','');
         const r = parseInt(hex.substr(0,2),16), g = parseInt(hex.substr(2,2),16), b = parseInt(hex.substr(4,2),16);
         return ((r*299)+(g*587)+(b*114))/1000 >= 128 ? '#000000' : '#ffffff';
     }
+
     socket.on('update', (data) => {
-        document.getElementById('hN').innerText = data.homeName;
-        document.getElementById('aN').innerText = data.awayName;
-        document.getElementById('hN').style.backgroundColor = data.homeColor;
-        document.getElementById('hN').style.color = getContrast(data.homeColor);
-        document.getElementById('aN').style.backgroundColor = data.awayColor;
-        document.getElementById('aN').style.color = getContrast(data.awayColor);
-        if(data.home !== lastH) { hS.classList.add('pop'); setTimeout(()=>hS.classList.remove('pop'),500); lastH = data.home; }
-        if(data.away !== lastA) { aS.classList.add('pop'); setTimeout(()=>aS.classList.remove('pop'),500); lastA = data.away; }
-        hS.innerText = data.home; aS.innerText = data.away;
+        // Имена и Цветове
+        const hn = document.getElementById('hN'), an = document.getElementById('aN');
+        hn.innerText = data.homeName;
+        an.innerText = data.awayName;
+        hn.style.backgroundColor = data.homeColor;
+        hn.style.color = getContrast(data.homeColor);
+        an.style.backgroundColor = data.awayColor;
+        an.style.color = getContrast(data.awayColor);
+
+        // Резултат
+        const hs = document.getElementById('hS'), as = document.getElementById('aS');
+        if(data.home !== lastH) { hs.classList.add('pop'); setTimeout(()=>hs.classList.remove('pop'),500); lastH = data.home; }
+        if(data.away !== lastA) { as.classList.add('pop'); setTimeout(()=>as.classList.remove('pop'),500); lastA = data.away; }
+        hs.innerText = data.home; as.innerText = data.away;
+
+        // Таймер
         const m = Math.floor(data.seconds / 60).toString().padStart(2, '0');
         const s = (data.seconds % 60).toString().padStart(2, '0');
         document.getElementById('timer').innerText = `${m}:${s}`;
-        renderC('hC', data.homeRedCards); renderC('aC', data.awayRedCards);
+
+        // Картони
+        renderC('hC', data.homeRedCards); 
+        renderC('aC', data.awayRedCards);
     });
-    function renderC(id, c) { const r = document.getElementById(id); r.innerHTML = ''; for(let i=0; i<c; i++) r.innerHTML += '<div class="red-card"></div>'; }
+
+    function renderC(id, c) { 
+        const r = document.getElementById(id); 
+        r.innerHTML = ''; 
+        if(c > 0) {
+            for(let i=0; i<c; i++) r.innerHTML += '<div class="red-card"></div>';
+        }
+    }
     
     // Drag logic
-    const board = document.getElementById('board');
+    const b = document.getElementById('board');
     let x=0, y=0, dx=0, dy=0, active=false;
-    board.onmousedown = (e) => { active=true; dx=e.clientX-x; dy=e.clientY-y; };
-    window.onmousemove = (e) => { if(active){ x=e.clientX-dx; y=e.clientY-dy; board.style.transform=`translate(${x}px,${y}px)`; } };
+    b.onmousedown = (e) => { if(e.target.tagName !== 'BUTTON') { active=true; dx=e.clientX-x; dy=e.clientY-y; } };
+    window.onmousemove = (e) => { if(active){ x=e.clientX-dx; y=e.clientY-dy; b.style.transform=`translate(${x}px,${y}px)`; } };
     window.onmouseup = () => active=false;
 </script>
 </body>
