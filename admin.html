@@ -2,238 +2,132 @@
 <html lang="bg">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Контролен панел - Футболно Табло</title>
     <style>
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background: transparent; 
-            margin: 0; 
-            padding: 0; 
-            color: white; 
-            overflow: hidden;
-            height: 100vh;
-            width: 100vw;
-            user-select: none;
-        }
-
-        /* Контейнер - първоначално горе вляво */
-        .scoreboard-draggable {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            display: flex;
-            align-items: stretch;
-            cursor: grab;
-            filter: drop-shadow(0 6px 12px rgba(0,0,0,0.3));
-            z-index: 9999;
-            transition: transform 0.1s ease;
-        }
-        .scoreboard-draggable:active { cursor: grabbing; }
-
-        /* Ляво: Осмоъгълник (Спонсор) + Таймер */
-        .brand-side {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, #2c3e50, #34495e); /* Свежо тъмносиньо */
-            padding: 12px;
-            min-width: 90px;
-            border-radius: 8px 0 0 8px;
-            border-right: 1px solid rgba(255,255,255,0.2);
-        }
-
-        .sponsor-logo {
-            width: 60px;
-            height: 60px;
-            background: #fff;
-            /* Форма на осмоъгълник */
-            clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 8px;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
-        }
-
-        .sponsor-logo img {
-            max-width: 70%;
-            max-height: 70%;
-            object-fit: contain;
-        }
-
-        .timer { 
-            font-size: 20px; 
-            color: #ecf0f1; 
-            font-weight: 800;
-            font-family: 'Monaco', 'Consolas', monospace;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-        }
-
-        /* Дясно: Отбори и Резултати */
-        .match-side {
-            display: flex;
-            flex-direction: column;
-            background: rgba(236, 240, 241, 0.95); /* Светъл, свеж фон */
-            border-radius: 0 8px 8px 0;
-            overflow: hidden;
-            justify-content: center;
-        }
-
-        .team-row {
-            display: flex;
-            align-items: center;
-            height: 45px;
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-        }
-        .team-row:last-child { border-bottom: none; }
-
-        .team-name { 
-            width: 230px; /* Подравнени за 21 символа */
-            padding: 0 15px;
-            font-size: 18px; 
-            font-weight: 700; 
-            text-transform: uppercase;
-            color: #2c3e50; /* Тъмен текст върху светъл фон */
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            line-height: 45px;
-        }
-
-        .score-cell {
-            width: 55px;
-            background: #2c3e50;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            font-weight: 900;
-            color: #f1c40f; /* Ярко жълто за резултата */
-        }
-
-        .red-cards-container {
-            display: flex;
-            gap: 4px;
-            padding-left: 10px;
-            min-width: 30px;
-        }
-
-        .red-card-icon {
-            width: 8px;
-            height: 12px;
-            background: #e74c3c;
-            border-radius: 1px;
-        }
-
-        /* Анимация за гол */
-        .score-pop { animation: pop 0.6s ease-in-out; }
-        @keyframes pop {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.3); background: #f1c40f; color: #2c3e50; }
-            100% { transform: scale(1); }
-        }
+        body { font-family: sans-serif; background: #f0f2f5; padding: 20px; display: flex; justify-content: center; }
+        .admin-panel { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 600px; }
+        h2 { text-align: center; color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        
+        .section { margin-bottom: 20px; padding: 15px; border: 1px solid #eee; border-radius: 8px; }
+        .flex-row { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+        input[type="text"] { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; }
+        
+        .team-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .control-box { text-align: center; background: #fafafa; padding: 15px; border-radius: 8px; }
+        
+        button { cursor: pointer; border: none; border-radius: 4px; padding: 10px 15px; font-weight: bold; transition: opacity 0.2s; }
+        .btn-plus { background: #27ae60; color: white; width: 100%; margin-bottom: 5px; font-size: 18px; }
+        .btn-minus { background: #e67e22; color: white; width: 100%; }
+        .btn-red { background: #e74c3c; color: white; margin-top: 10px; width: 100%; }
+        .btn-reset { background: #7f8c8d; color: white; }
+        .btn-timer { background: #3498db; color: white; font-size: 18px; padding: 15px; flex: 1; }
+        
+        .score-display { font-size: 32px; font-weight: bold; margin: 10px 0; color: #2c3e50; }
+        .label { font-size: 12px; color: #7f8c8d; text-transform: uppercase; margin-bottom: 5px; display: block; }
     </style>
 </head>
 <body>
 
-    <div id="dragContainer" class="scoreboard-draggable">
-        <!-- Спонсор и Време -->
-        <div class="brand-side">
-            <div class="sponsor-logo">
-                <img src="https://placeholder.com" alt="Sponsor">
-            </div>
-            <div id="timer" class="timer">00:00</div>
+<div class="admin-panel">
+    <h2>🏆 Управление на мача</h2>
+
+    <!-- Настройка на имена -->
+    <div class="section">
+        <div class="flex-row">
+            <input type="text" id="homeInput" placeholder="Домакин (макс 21)" maxlength="21">
+            <span>VS</span>
+            <input type="text" id="awayInput" placeholder="Гост (макс 21)" maxlength="21">
+        </div>
+        <button onclick="updateNames()" style="width:100%; background:#2c3e50; color:white;">ОБНОВИ ИМЕНАТА</button>
+    </div>
+
+    <!-- Резултат и Картони -->
+    <div class="team-controls">
+        <!-- Домакин -->
+        <div class="control-box">
+            <span class="label">Домакин</span>
+            <div id="homeScoreDisp" class="score-display">0</div>
+            <button class="btn-plus" onclick="changeScore('home', 1)">+ ГОЛ</button>
+            <button class="btn-minus" onclick="changeScore('home', -1)">- 1</button>
+            <button class="btn-red" onclick="changeRedCard('home', 1)">🟥 ЧЕРВЕН КАРТОН</button>
         </div>
 
-        <!-- Отбори (Перфектно подравнени) -->
-        <div class="match-side">
-            <div class="team-row">
-                <div id="homeName" class="team-name">HOME TEAM</div>
-                <div id="homeScore" class="score-cell">0</div>
-                <div id="homeCards" class="red-cards-container"></div>
-            </div>
-            <div class="team-row">
-                <div id="awayName" class="team-name">AWAY TEAM</div>
-                <div id="awayScore" class="score-cell">0</div>
-                <div id="awayCards" class="red-cards-container"></div>
-            </div>
+        <!-- Гост -->
+        <div class="control-box">
+            <span class="label">Гост</span>
+            <div id="awayScoreDisp" class="score-display">0</div>
+            <button class="btn-plus" onclick="changeScore('away', 1)">+ ГОЛ</button>
+            <button class="btn-minus" onclick="changeScore('away', -1)">- 1</button>
+            <button class="btn-red" onclick="changeRedCard('away', 1)">🟥 ЧЕРВЕН КАРТОН</button>
         </div>
     </div>
 
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-        // Логика за местене (Drag & Drop)
-        const dragItem = document.getElementById("dragContainer");
-        let active = false, currentX, currentY, initialX, initialY, xOffset = 0, yOffset = 0;
+    <!-- Таймер Контрол -->
+    <div class="section" style="margin-top:20px;">
+        <span class="label">Време: <span id="timerDisp" style="font-weight:bold;">00:00</span></span>
+        <div class="flex-row">
+            <button id="timerBtn" class="btn-timer" onclick="toggleTimer()">СТАРТ</button>
+            <button class="btn-reset" onclick="resetMatch()">RESET</button>
+        </div>
+    </div>
+</div>
 
-        const dragStart = (e) => {
-            initialX = (e.type === "touchstart" ? e.touches[0].clientX : e.clientX) - xOffset;
-            initialY = (e.type === "touchstart" ? e.touches[0].clientY : e.clientY) - yOffset;
-            if (e.target === dragItem || dragItem.contains(e.target)) active = true;
-        };
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    const socket = io();
+    let matchData = {
+        homeName: "HOME",
+        awayName: "AWAY",
+        home: 0,
+        away: 0,
+        homeRedCards: 0,
+        awayRedCards: 0,
+        seconds: 0,
+        isRunning: false
+    };
 
-        const dragEnd = () => { initialX = currentX; initialY = currentY; active = false; };
+    function updateNames() {
+        matchData.homeName = document.getElementById('homeInput').value || "HOME";
+        matchData.awayName = document.getElementById('awayInput').value || "AWAY";
+        sendUpdate();
+    }
 
-        const drag = (e) => {
-            if (active) {
-                e.preventDefault();
-                currentX = (e.type === "touchmove" ? e.touches[0].clientX : e.clientX) - initialX;
-                currentY = (e.type === "touchmove" ? e.touches[0].clientY : e.clientY) - initialY;
-                xOffset = currentX; yOffset = currentY;
-                dragItem.style.transform = `translate3d(${currentX}px, ${currentY}px, 0)`;
-            }
-        };
+    function changeScore(team, val) {
+        matchData[team] = Math.max(0, matchData[team] + val);
+        document.getElementById(`${team}ScoreDisp`).innerText = matchData[team];
+        sendUpdate();
+    }
 
-        window.addEventListener("touchstart", dragStart, false);
-        window.addEventListener("touchend", dragEnd, false);
-        window.addEventListener("touchmove", drag, false);
-        window.addEventListener("mousedown", dragStart, false);
-        window.addEventListener("mouseup", dragEnd, false);
-        window.addEventListener("mousemove", drag, false);
+    function changeRedCard(team, val) {
+        matchData[`${team}RedCards`] = Math.max(0, matchData[`${team}RedCards`] + val);
+        sendUpdate();
+    }
 
-        // Socket.io Логика
-        const socket = io();
-        let lastScore = { home: 0, away: 0 };
-        
-        const formatTime = (s) => {
-            const mins = Math.floor(s / 60).toString().padStart(2, '0');
-            const secs = (s % 60).toString().padStart(2, '0');
-            return `${mins}:${secs}`;
-        };
+    function toggleTimer() {
+        matchData.isRunning = !matchData.isRunning;
+        document.getElementById('timerBtn').innerText = matchData.isRunning ? "ПАУЗА" : "СТАРТ";
+        document.getElementById('timerBtn').style.background = matchData.isRunning ? "#e67e22" : "#3498db";
+        sendUpdate();
+    }
 
-        function updateRedCards(id, count) {
-            const container = document.getElementById(id);
-            container.innerHTML = '';
-            for (let i = 0; i < count; i++) {
-                const card = document.createElement('div');
-                card.className = 'red-card-icon';
-                container.appendChild(card);
-            }
+    function resetMatch() {
+        if(confirm("Нулиране на мача?")) {
+            matchData = { homeName: "HOME", awayName: "AWAY", home: 0, away: 0, homeRedCards: 0, awayRedCards: 0, seconds: 0, isRunning: false };
+            location.reload();
+            sendUpdate();
         }
+    }
 
-        socket.on('update', (data) => {
-            document.getElementById('homeName').innerText = data.homeName;
-            document.getElementById('awayName').innerText = data.awayName;
-            
-            const hScoreEl = document.getElementById('homeScore');
-            const aScoreEl = document.getElementById('awayScore');
+    function sendUpdate() {
+        socket.emit('update', matchData);
+    }
 
-            if (data.home !== lastScore.home) { hScoreEl.classList.add('score-pop'); setTimeout(() => hScoreEl.classList.remove('score-pop'), 600); lastScore.home = data.home; }
-            if (data.away !== lastScore.away) { aScoreEl.classList.add('score-pop'); setTimeout(() => aScoreEl.classList.remove('score-pop'), 600); lastScore.away = data.away; }
-
-            hScoreEl.innerText = data.home;
-            aScoreEl.innerText = data.away;
-            document.getElementById('timer').innerText = formatTime(data.seconds);
-            updateRedCards('homeCards', data.homeRedCards);
-            updateRedCards('awayCards', data.awayRedCards);
-        });
-
-        socket.on('timerUpdate', (data) => {
-            const sec = typeof data === 'object' ? data.seconds : data;
-            document.getElementById('timer').innerText = formatTime(sec);
-        });
-    </script>
+    // Слушаме за времето от сървъра, за да го показваме и в админа
+    socket.on('update', (data) => {
+        const mins = Math.floor(data.seconds / 60).toString().padStart(2, '0');
+        const secs = (data.seconds % 60).toString().padStart(2, '0');
+        document.getElementById('timerDisp').innerText = `${mins}:${secs}`;
+    });
+</script>
 </body>
 </html>
