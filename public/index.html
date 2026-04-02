@@ -55,6 +55,8 @@
 
         .name-cell { 
             width: 340px; padding: 0 25px; 
+            /* Смяна на шрифта на Arial */
+            font-family: Arial, Helvetica, sans-serif; 
             font-size: 28px; font-weight: 900; text-transform: uppercase;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
             height: 100%; line-height: 60px;
@@ -83,7 +85,6 @@
 <div id="board" class="scoreboard">
     <div class="brand-block">
         <div class="logo-box">
-            <!-- Тъй като Express обслужва папка 'public' като коренна, ползваме директно името на файла -->
             <img src="logo.jpg" alt="KFM Logo">
         </div>
         <div id="timer" class="time-display">00:00</div>
