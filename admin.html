@@ -2,66 +2,55 @@
 <html lang="bg">
 <head>
     <meta charset="UTF-8">
-    <title>Admin Panel - Football Scoreboard</title>
+    <title>Admin Panel - Scoreboard</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; display: flex; justify-content: center; }
         .admin-panel { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.15); width: 100%; max-width: 750px; }
         .setup-row { display: grid; grid-template-columns: 1fr 50px 1fr 100px; gap: 10px; margin-bottom: 20px; align-items: center; }
         input[type="text"] { padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 16px; width: 100%; box-sizing: border-box; }
         input[type="color"] { width: 100%; height: 45px; border: none; cursor: pointer; background: none; }
-        
         .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .team-box { padding: 15px; border-radius: 10px; text-align: center; border: 1px solid #eee; background: #fafafa; }
-        
         .score-num { font-size: 50px; font-weight: bold; margin: 5px 0; color: #333; }
         .btn { cursor: pointer; border: none; border-radius: 6px; padding: 12px; font-weight: bold; margin: 5px 0; width: 100%; transition: 0.2s; }
         .btn-plus { background: #27ae60; color: white; font-size: 18px; }
         .btn-minus { background: #f39c12; color: white; }
         .btn-red { background: #e74c3c; color: white; margin-top: 10px; }
         .btn-update { background: #2c3e50; color: white; padding: 15px; font-size: 18px; grid-column: span 2; margin-top: 15px; }
-
         .timer-box { background: #2c3e50; color: white; padding: 20px; border-radius: 10px; margin-top: 20px; text-align: center; }
         .timer-display { font-size: 45px; font-family: monospace; color: #2ecc71; margin-bottom: 15px; }
         .timer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        
         .card-preview { min-height: 25px; display: flex; justify-content: center; gap: 4px; margin-bottom: 10px; }
         .mini-red-card { width: 12px; height: 18px; background: red; border-radius: 2px; border: 1px solid #fff; }
     </style>
 </head>
 <body>
-
 <div class="admin-panel">
-    <h2 style="text-align:center; color:#2c3e50;">⚽ КОНТРОЛЕН ПАНЕЛ</h2>
-
     <div class="setup-row">
-        <input type="text" id="hName" placeholder="Домакин (22)" maxlength="22" onchange="fullSync()">
-        <input type="color" id="hCol" value="#ffffff" onchange="fullSync()">
-        <input type="text" id="aName" placeholder="Гост (22)" maxlength="22" onchange="fullSync()">
-        <input type="color" id="aCol" value="#ffffff" onchange="fullSync()">
+        <input type="text" id="hName" placeholder="Домакин (22)" maxlength="22">
+        <input type="color" id="hCol" value="#ffffff">
+        <input type="text" id="aName" placeholder="Гост (22)" maxlength="22">
+        <input type="color" id="aCol" value="#ffffff">
     </div>
-
     <div class="controls">
-        <!-- Домакин -->
         <div class="team-box">
             <div class="score-num" id="hScoreDisp">0</div>
             <div id="hCardsPreview" class="card-preview"></div>
             <button class="btn btn-plus" onclick="changeScore('home', 1)">+ ГОЛ</button>
-            <button class="btn btn-minus" onclick="changeScore('home', -1)">-1 Резултат</button>
+            <button class="btn btn-minus" onclick="changeScore('home', -1)">-1</button>
             <button class="btn btn-red" onclick="changeCards('home', 1)">🟥 + КАРТОН</button>
-            <button class="btn btn-minus" onclick="changeCards('home', -1)" style="font-size:11px;">Премахни картон</button>
+            <button class="btn btn-minus" onclick="changeCards('home', -1)" style="font-size:11px;">Махни картон</button>
         </div>
-        <!-- Гост -->
         <div class="team-box">
             <div class="score-num" id="aScoreDisp">0</div>
             <div id="aCardsPreview" class="card-preview"></div>
             <button class="btn btn-plus" onclick="changeScore('away', 1)">+ ГОЛ</button>
-            <button class="btn btn-minus" onclick="changeScore('away', -1)">-1 Резултат</button>
+            <button class="btn btn-minus" onclick="changeScore('away', -1)">-1</button>
             <button class="btn btn-red" onclick="changeCards('away', 1)">🟥 + КАРТОН</button>
-            <button class="btn btn-minus" onclick="changeCards('away', -1)" style="font-size:11px;">Премахни картон</button>
+            <button class="btn btn-minus" onclick="changeCards('away', -1)" style="font-size:11px;">Махни картон</button>
         </div>
         <button class="btn btn-update" onclick="fullSync()">✅ АКТУАЛИЗИРАЙ ВСИЧКО</button>
     </div>
-
     <div class="timer-box">
         <div class="timer-display" id="timeDisp">00:00</div>
         <div class="timer-grid">
@@ -72,42 +61,16 @@
         </div>
     </div>
 </div>
-
 <script src="/socket.io/socket.io.js"></script>
 <script>
     const socket = io();
-    let state = {
-        homeName: "HOME", awayName: "AWAY",
-        home: 0, away: 0,
-        homeRedCards: 0, awayRedCards: 0,
-        homeColor: "#ffffff", awayColor: "#ffffff",
-        seconds: 0, isRunning: false
-    };
+    let state = { homeName: "HOME", awayName: "AWAY", home: 0, away: 0, homeRedCards: 0, awayRedCards: 0, homeColor: "#ffffff", awayColor: "#ffffff", seconds: 0, isRunning: false };
 
-    // Пинг на всеки 25 сек за "събуждане"
-    setInterval(() => { socket.emit('ping'); }, 25000);
-
-    function changeScore(t, v) { 
-        state[t] = Math.max(0, state[t] + v); 
-        fullSync(); 
-    }
-
-    function changeCards(t, v) { 
-        state[t+'RedCards'] = Math.max(0, state[t+'RedCards'] + v); 
-        fullSync(); 
-    }
-
-    function toggleTimer() { 
-        state.isRunning = !state.isRunning; 
-        fullSync(); 
-    }
-
-    function setHalf(sec, pause = false) { 
-        state.seconds = sec; 
-        if(pause) state.isRunning = false; 
-        fullSync(); 
-    }
-
+    function changeScore(t, v) { state[t] = Math.max(0, state[t] + v); fullSync(); }
+    function changeCards(t, v) { state[t+'RedCards'] = Math.max(0, state[t+'RedCards'] + v); fullSync(); }
+    function toggleTimer() { state.isRunning = !state.isRunning; fullSync(); }
+    function setHalf(sec, pause = false) { state.seconds = sec; if(pause) state.isRunning = false; fullSync(); }
+    
     function fullSync() {
         state.homeName = document.getElementById('hName').value || "HOME";
         state.awayName = document.getElementById('aName').value || "AWAY";
@@ -116,31 +79,17 @@
         socket.emit('update', state);
     }
 
-    function resetMatch() { 
-        if(confirm("Изтриване на всичко?")) { 
-            socket.emit('update', { reset: true });
-            setTimeout(() => location.reload(), 500);
-        } 
-    }
-
-    function renderCards(id, count) {
-        const div = document.getElementById(id);
-        div.innerHTML = '';
-        for(let i=0; i<count; i++) div.innerHTML += '<div class="mini-red-card"></div>';
-    }
+    function resetMatch() { if(confirm("Изтриване?")) { socket.emit('update', { reset: true }); setTimeout(()=>location.reload(), 500); } }
 
     socket.on('update', (data) => {
         state = data;
         document.getElementById('hScoreDisp').innerText = state.home;
         document.getElementById('aScoreDisp').innerText = state.away;
-        
         const m = Math.floor(state.seconds / 60).toString().padStart(2, '0');
         const s = (state.seconds % 60).toString().padStart(2, '0');
         document.getElementById('timeDisp').innerText = `${m}:${s}`;
-        
         document.getElementById('startBtn').innerText = state.isRunning ? "ПАУЗА" : "СТАРТ";
         document.getElementById('startBtn').style.background = state.isRunning ? "#e67e22" : "#3498db";
-
         renderCards('hCardsPreview', state.homeRedCards);
         renderCards('aCardsPreview', state.awayRedCards);
     });
