@@ -8,62 +8,71 @@
         .scoreboard { 
             position: absolute; top: 25px; left: 25px; 
             display: flex; align-items: stretch;
-            filter: drop-shadow(0 4px 12px rgba(0,0,0,0.6));
+            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.7));
             z-index: 1000;
             cursor: grab;
         }
 
+        /* Блок за Спонсор и Таймер */
         .brand-block { 
             background: #1a1a1a; 
             padding: 15px 20px; 
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             border-left: 6px solid #ffcc00;
-            border-radius: 6px 0 0 6px;
-            min-width: 100px;
+            border-radius: 8px 0 0 8px;
+            min-width: 110px;
         }
 
         .logo-box { 
-            width: 85px; height: 85px; 
+            width: 100px; height: 70px; /* Коригирано за правоъгълното лого на КФМ */
             background: #ffffff; 
-            border-radius: 5px;
-            display: flex; align-items: center; justify-content: center; margin-bottom: 10px;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+            border-radius: 4px;
+            display: flex; align-items: center; justify-content: center; margin-bottom: 8px;
+            padding: 5px;
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.1);
         }
-        .logo-box img { max-width: 90%; max-height: 90%; object-fit: contain; }
+        
+        /* Пътят е към logo.jpg */
+        .logo-box img { 
+            max-width: 95%; 
+            max-height: 95%; 
+            object-fit: contain; 
+        }
 
         .time-display { 
-            font-size: 26px; color: #ffffff; font-weight: 900; font-family: 'Courier New', monospace; 
-            text-shadow: 0 0 5px rgba(0,0,0,0.5);
+            font-size: 28px; color: #ffffff; font-weight: 900; 
+            font-family: 'Courier New', monospace; 
+            text-shadow: 0 0 5px rgba(0,0,0,0.8);
         }
 
+        /* Секция Отбори */
         .teams-container { 
             display: flex; flex-direction: column; 
             overflow: hidden;
-            border-radius: 0 6px 6px 0;
+            border-radius: 0 8px 8px 0;
         }
 
         .team-row { display: flex; height: 55px; align-items: center; }
 
         .name-cell { 
-            width: 320px; padding: 0 25px; 
-            font-size: 25px; font-weight: 900; text-transform: uppercase;
+            width: 330px; padding: 0 25px; 
+            font-size: 26px; font-weight: 900; text-transform: uppercase;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
             height: 100%; line-height: 55px;
-            transition: all 0.3s;
         }
 
         .score-cell { 
-            width: 65px; background: rgba(0,0,0,0.92); color: #ffcc00; 
+            width: 70px; background: rgba(0,0,0,0.95); color: #ffcc00; 
             display: flex; align-items: center; justify-content: center; 
-            font-size: 34px; font-weight: 900; height: 100%;
-            border-left: 1px solid rgba(255,255,255,0.15);
+            font-size: 36px; font-weight: 900; height: 100%;
+            border-left: 1px solid rgba(255,255,255,0.2);
         }
 
         .cards-cell { display: flex; gap: 5px; padding: 0 12px; }
         .red-card-icon { 
-            width: 14px; height: 20px; 
-            background: #ff0000; border-radius: 2px; border: 1.5px solid white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+            width: 15px; height: 22px; 
+            background: #ff0000; border-radius: 2px; border: 2px solid white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.5);
         }
 
         .goal-flash { animation: flash 0.6s ease-in-out; }
@@ -75,7 +84,8 @@
 <div id="board" class="scoreboard">
     <div class="brand-block">
         <div class="logo-box">
-            <img src="/logo.png" alt="Sponsor" onerror="this.src='https://placeholder.com'">
+            <!-- Променено на logo.jpg -->
+            <img src="/logo.jpg" alt="KFM Logo" onerror="console.log('Logo load error');">
         </div>
         <div id="timer" class="time-display">00:00</div>
     </div>
