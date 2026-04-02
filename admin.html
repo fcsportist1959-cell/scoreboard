@@ -5,115 +5,70 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Mobile Admin - Scoreboard</title>
     <style>
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-            background: #121212; color: white; margin: 0; padding: 10px; 
-        }
+        body { font-family: sans-serif; background: #121212; color: white; margin: 0; padding: 10px; }
         .admin-container { max-width: 500px; margin: 0 auto; }
-        
-        /* Секция Имена и Цветове */
-        .setup-card { background: #1e1e1e; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #333; }
-        .row { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; }
-        input[type="text"] { 
-            flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #444; 
-            background: #2a2a2a; color: white; font-size: 16px; 
-        }
-        input[type="color"] { width: 50px; height: 45px; border: none; background: none; }
-
-        /* Отбори - Вертикално подредени за телефон */
-        .team-block { 
-            background: #1e1e1e; border-radius: 15px; padding: 20px; 
-            margin-bottom: 15px; border-left: 6px solid #444; 
-        }
+        .card { background: #1e1e1e; padding: 15px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #333; }
+        .row { display: flex; gap: 8px; margin-bottom: 10px; }
+        input { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #2a2a2a; color: white; font-size: 16px; }
+        .team-block { background: #1e1e1e; border-radius: 15px; padding: 15px; margin-bottom: 12px; border-left: 6px solid #444; }
         .home-accent { border-left-color: #3498db; }
         .away-accent { border-left-color: #e74c3c; }
-
-        .team-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .team-display-name { font-size: 18px; font-weight: bold; text-transform: uppercase; color: #bbb; }
-        .score-big { font-size: 60px; font-weight: 900; color: #fff; }
-
-        /* Огромни бутони за докосване */
-        .btn { 
-            display: flex; align-items: center; justify-content: center;
-            border: none; border-radius: 12px; font-weight: bold; cursor: pointer;
-            touch-action: manipulation; transition: transform 0.1s;
-        }
-        .btn:active { transform: scale(0.95); opacity: 0.8; }
-        
-        .btn-goal { background: #2ecc71; color: white; height: 80px; font-size: 24px; width: 100%; margin-bottom: 10px; }
-        .btn-minus { background: #333; color: #888; height: 45px; font-size: 14px; width: 48%; }
-        .btn-red { background: #c0392b; color: white; height: 45px; font-size: 14px; width: 48%; }
-        .flex-btns { display: flex; justify-content: space-between; }
-
-        /* Таймер секция */
+        .score-big { font-size: 55px; font-weight: 900; color: #fff; margin-right: 15px; }
+        .btn { border: none; border-radius: 10px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .btn-goal { background: #2ecc71; color: white; height: 75px; font-size: 22px; width: 100%; margin-bottom: 10px; }
+        .btn-small { background: #333; color: #bbb; height: 45px; font-size: 13px; width: 48%; }
+        .btn-red { background: #c0392b; color: white; height: 45px; font-size: 13px; width: 48%; }
         .timer-card { background: #2c3e50; padding: 20px; border-radius: 15px; text-align: center; }
-        .timer-val { font-size: 50px; font-family: 'Courier New', monospace; color: #00ff00; margin-bottom: 15px; }
-        .timer-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .btn-timer { height: 60px; font-size: 18px; background: #3498db; color: white; }
-        .btn-half { height: 50px; background: #8e44ad; color: white; font-size: 14px; }
-        
-        .update-all { background: white; color: black; height: 60px; width: 100%; margin-top: 15px; font-size: 18px; }
+        .timer-val { font-size: 45px; font-family: monospace; color: #00ff00; margin-bottom: 15px; }
+        .timer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     </style>
 </head>
 <body>
-
 <div class="admin-container">
-    <!-- Настройки -->
-    <div class="setup-card">
-        <div class="row">
-            <input type="text" id="hName" placeholder="Домакин" maxlength="22" onchange="fullSync()">
-            <input type="color" id="hCol" value="#ffffff" onchange="fullSync()">
-        </div>
-        <div class="row">
-            <input type="text" id="aName" placeholder="Гост" maxlength="22" onchange="fullSync()">
-            <input type="color" id="aCol" value="#ffffff" onchange="fullSync()">
-        </div>
+    <div class="card">
+        <div class="row"><input type="text" id="hN" placeholder="Домакин" maxlength="22"><input type="color" id="hC" value="#ffffff"></div>
+        <div class="row"><input type="text" id="aN" placeholder="Гост" maxlength="22"><input type="color" id="aC" value="#ffffff"></div>
+        <button class="btn" style="width:100%; height:45px; background:white; color:black;" onclick="fullSync()">ЗАПАЗИ ИМЕНА И ЦВЕТОВЕ</button>
     </div>
 
     <!-- Домакин -->
     <div class="team-block home-accent">
-        <div class="team-header">
-            <span id="hNameLabel" class="team-display-name">ДОМАКИН</span>
-            <div id="hCardsDisp" style="display:flex; gap:3px;"></div>
-        </div>
-        <div style="display:flex; align-items:center; gap:20px;">
+        <div id="hNameLabel" style="font-weight:bold; margin-bottom:10px; color:#aaa;">ДОМАКИН</div>
+        <div style="display:flex; align-items:center;">
             <div class="score-big" id="hScoreDisp">0</div>
             <button class="btn btn-goal" onclick="changeScore('home', 1)">+ ГОЛ</button>
         </div>
-        <div class="flex-btns">
-            <button class="btn btn-minus" onclick="changeScore('home', -1)">-1 КОРЕКЦИЯ</button>
-            <button class="btn btn-red" onclick="changeCards('home', 1)">🟥 ЧЕРВЕН</button>
+        <div style="display:flex; justify-content:space-between;">
+            <button class="btn btn-small" onclick="changeScore('home', -1)">-1 КОРЕКЦИЯ</button>
+            <button class="btn btn-red" onclick="changeCards('home', 1)">🟥 + КАРТОН</button>
         </div>
+        <button class="btn btn-small" onclick="changeCards('home', -1)" style="width:100%; margin-top:5px; height:30px;">Махни картон</button>
     </div>
 
     <!-- Гост -->
     <div class="team-block away-accent">
-        <div class="team-header">
-            <span id="aNameLabel" class="team-display-name">ГОСТ</span>
-            <div id="aCardsDisp" style="display:flex; gap:3px;"></div>
-        </div>
-        <div style="display:flex; align-items:center; gap:20px;">
+        <div id="aNameLabel" style="font-weight:bold; margin-bottom:10px; color:#aaa;">ГОСТ</div>
+        <div style="display:flex; align-items:center;">
             <div class="score-big" id="aScoreDisp">0</div>
             <button class="btn btn-goal" onclick="changeScore('away', 1)">+ ГОЛ</button>
         </div>
-        <div class="flex-btns">
-            <button class="btn btn-minus" onclick="changeScore('away', -1)">-1 КОРЕКЦИЯ</button>
-            <button class="btn btn-red" onclick="changeCards('away', 1)">🟥 ЧЕРВЕН</button>
+        <div style="display:flex; justify-content:space-between;">
+            <button class="btn btn-small" onclick="changeScore('away', -1)">-1 КОРЕКЦИЯ</button>
+            <button class="btn btn-red" onclick="changeCards('away', 1)">🟥 + КАРТОН</button>
         </div>
+        <button class="btn btn-small" onclick="changeCards('away', -1)" style="width:100%; margin-top:5px; height:30px;">Махни картон</button>
     </div>
 
     <!-- Таймер -->
     <div class="timer-card">
         <div class="timer-val" id="timeDisp">00:00</div>
-        <div class="timer-controls">
-            <button class="btn btn-timer" id="startBtn" onclick="toggleTimer()">СТАРТ</button>
-            <button class="btn btn-half" onclick="setHalf(2700)">45' (2-РО)</button>
-            <button class="btn" style="background:#444; color:white;" onclick="setHalf(2700, true)">КРАЙ 1-ВО</button>
-            <button class="btn" style="background:#c0392b; color:white;" onclick="resetMatch()">НУЛИРАЙ</button>
+        <div class="timer-grid">
+            <button class="btn" id="startBtn" style="height:55px; background:#3498db; color:white;" onclick="toggleTimer()">СТАРТ / ПАУЗА</button>
+            <button class="btn" style="height:55px; background:#8e44ad; color:white;" onclick="setHalf(2700)">45' (2-РО)</button>
+            <button class="btn" style="height:50px; background:#444; color:white;" onclick="setHalf(2700, true)">КРАЙ 1-ВО</button>
+            <button class="btn" style="height:50px; background:#c0392b; color:white;" onclick="resetMatch()">НУЛИРАЙ</button>
         </div>
     </div>
-
-    <button class="btn update-all" onclick="fullSync()">АКТУАЛИЗИРАЙ ВСИЧКО</button>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
@@ -122,23 +77,15 @@
     let state = { homeName: "HOME", awayName: "AWAY", home: 0, away: 0, homeRedCards: 0, awayRedCards: 0, homeColor: "#ffffff", awayColor: "#ffffff", seconds: 0, isRunning: false };
 
     function changeScore(t, v) { state[t] = Math.max(0, state[t] + v); fullSync(); }
-    
-    function changeCards(t, v) { 
-        if(v < 0 && state[t+'RedCards'] <= 0) return;
-        // Натискане на бутона Червен картон циклично добавя или маха (ако се задържи)
-        // За по-лесно тук само добавяме. Ако искаш да махаш - направи го през fullSync или добави малък бутон.
-        state[t+'RedCards'] += v;
-        fullSync();
-    }
-
+    function changeCards(t, v) { state[t+'RedCards'] = Math.max(0, state[t+'RedCards'] + v); fullSync(); }
     function toggleTimer() { state.isRunning = !state.isRunning; fullSync(); }
     function setHalf(sec, pause = false) { state.seconds = sec; if(pause) state.isRunning = false; fullSync(); }
     
     function fullSync() {
-        state.homeName = document.getElementById('hName').value || "HOME";
-        state.awayName = document.getElementById('aName').value || "AWAY";
-        state.homeColor = document.getElementById('hCol').value;
-        state.awayColor = document.getElementById('aCol').value;
+        state.homeName = document.getElementById('hN').value || "HOME";
+        state.awayName = document.getElementById('aN').value || "AWAY";
+        state.homeColor = document.getElementById('hC').value;
+        state.awayColor = document.getElementById('aC').value;
         socket.emit('update', state);
     }
 
@@ -150,23 +97,13 @@
         document.getElementById('aScoreDisp').innerText = state.away;
         document.getElementById('hNameLabel').innerText = state.homeName;
         document.getElementById('aNameLabel').innerText = state.awayName;
-
         const m = Math.floor(state.seconds / 60).toString().padStart(2, '0');
         const s = (state.seconds % 60).toString().padStart(2, '0');
         document.getElementById('timeDisp').innerText = `${m}:${s}`;
-        
         const btn = document.getElementById('startBtn');
         btn.innerText = state.isRunning ? "ПАУЗА" : "СТАРТ";
         btn.style.background = state.isRunning ? "#e67e22" : "#3498db";
-
-        renderCards('hCardsDisp', state.homeRedCards);
-        renderCards('aCardsDisp', state.awayRedCards);
     });
-
-    function renderCards(id, count) {
-        const d = document.getElementById(id); d.innerHTML = '';
-        for(let i=0; i<count; i++) d.innerHTML += '<div style="width:10px; height:15px; background:red; border-radius:2px;"></div>';
-    }
 </script>
 </body>
 </html>
