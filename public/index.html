@@ -1,239 +1,127 @@
 <!DOCTYPE html>
-<html lang="bg">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background: transparent; 
-            margin: 0; 
-            padding: 0; 
-            color: white; 
-            overflow: hidden;
-            height: 100vh;
-            width: 100vw;
-            user-select: none;
-        }
-
-        /* Контейнер - първоначално горе вляво */
+        body { margin: 0; padding: 0; background: transparent; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
+        
         .scoreboard-draggable {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            display: flex;
-            align-items: stretch;
-            cursor: grab;
-            filter: drop-shadow(0 6px 12px rgba(0,0,0,0.3));
-            z-index: 9999;
-            transition: transform 0.1s ease;
+            position: absolute; top: 20px; left: 20px;
+            display: flex; align-items: stretch;
+            cursor: grab; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.4));
+            z-index: 1000;
         }
-        .scoreboard-draggable:active { cursor: grabbing; }
 
-        /* Ляво: Осмоъгълник (Спонсор) + Таймер */
+        /* Осмоъгълник и Таймер */
         .brand-side {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, #2c3e50, #34495e); /* Свежо тъмносиньо */
-            padding: 12px;
+            background: #2c3e50; padding: 15px;
+            display: flex; flex-direction: column; align-items: center;
+            border-radius: 10px 0 0 10px; border-right: 1px solid rgba(255,255,255,0.2);
             min-width: 90px;
-            border-radius: 8px 0 0 8px;
-            border-right: 1px solid rgba(255,255,255,0.2);
         }
-
-        .sponsor-logo {
-            width: 60px;
-            height: 60px;
-            background: #fff;
-            /* Форма на осмоъгълник */
+        .octagon {
+            width: 65px; height: 65px; background: white;
             clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 8px;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+            display: flex; align-items: center; justify-content: center; margin-bottom: 10px;
         }
+        .timer { font-size: 22px; color: #00ff00; font-weight: bold; font-family: monospace; }
 
-        .sponsor-logo img {
-            max-width: 70%;
-            max-height: 70%;
-            object-fit: contain;
-        }
-
-        .timer { 
-            font-size: 20px; 
-            color: #ecf0f1; 
-            font-weight: 800;
-            font-family: 'Monaco', 'Consolas', monospace;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-        }
-
-        /* Дясно: Отбори и Резултати */
-        .match-side {
-            display: flex;
-            flex-direction: column;
-            background: rgba(236, 240, 241, 0.95); /* Светъл, свеж фон */
-            border-radius: 0 8px 8px 0;
-            overflow: hidden;
-            justify-content: center;
-        }
-
-        .team-row {
-            display: flex;
-            align-items: center;
-            height: 45px;
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-        }
+        /* Отбори и Резултати */
+        .match-side { background: #fdfdfd; border-radius: 0 10px 10px 0; overflow: hidden; display: flex; flex-direction: column; }
+        
+        .team-row { display: flex; height: 45px; align-items: center; border-bottom: 1px solid #eee; }
         .team-row:last-child { border-bottom: none; }
 
         .team-name { 
-            width: 230px; /* Подравнени за 21 символа */
-            padding: 0 15px;
-            font-size: 18px; 
-            font-weight: 700; 
-            text-transform: uppercase;
-            color: #2c3e50; /* Тъмен текст върху светъл фон */
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            line-height: 45px;
+            width: 240px; /* Увеличено за 22 символа */
+            padding: 0 15px; font-size: 19px; font-weight: 800; 
+            text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            height: 100%; line-height: 45px; transition: all 0.4s;
         }
 
         .score-cell {
-            width: 55px;
-            background: #2c3e50;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            font-weight: 900;
-            color: #f1c40f; /* Ярко жълто за резултата */
+            width: 55px; background: #34495e; color: #f1c40f;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 26px; font-weight: 900; height: 100%;
         }
 
-        .red-cards-container {
-            display: flex;
-            gap: 4px;
-            padding-left: 10px;
-            min-width: 30px;
-        }
+        .cards-area { display: flex; gap: 4px; padding: 0 10px; min-width: 20px; }
+        .red-card { width: 8px; height: 12px; background: #e74c3c; border-radius: 1px; }
 
-        .red-card-icon {
-            width: 8px;
-            height: 12px;
-            background: #e74c3c;
-            border-radius: 1px;
-        }
-
-        /* Анимация за гол */
-        .score-pop { animation: pop 0.6s ease-in-out; }
-        @keyframes pop {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.3); background: #f1c40f; color: #2c3e50; }
-            100% { transform: scale(1); }
-        }
+        .score-pop { animation: pop 0.5s ease; }
+        @keyframes pop { 50% { transform: scale(1.4); } }
     </style>
 </head>
 <body>
 
-    <div id="dragContainer" class="scoreboard-draggable">
-        <!-- Спонсор и Време -->
-        <div class="brand-side">
-            <div class="sponsor-logo">
-                <img src="https://placeholder.com" alt="Sponsor">
-            </div>
-            <div id="timer" class="timer">00:00</div>
+<div id="board" class="scoreboard-draggable">
+    <div class="brand-side">
+        <div class="octagon"><img src="https://placeholder.com" style="width:70%"></div>
+        <div id="timer" class="timer">00:00</div>
+    </div>
+    <div class="match-side">
+        <div class="team-row">
+            <div id="hName" class="team-name">HOME</div>
+            <div id="hScore" class="score-cell">0</div>
+            <div id="hCards" class="cards-area"></div>
         </div>
-
-        <!-- Отбори (Перфектно подравнени) -->
-        <div class="match-side">
-            <div class="team-row">
-                <div id="homeName" class="team-name">HOME TEAM</div>
-                <div id="homeScore" class="score-cell">0</div>
-                <div id="homeCards" class="red-cards-container"></div>
-            </div>
-            <div class="team-row">
-                <div id="awayName" class="team-name">AWAY TEAM</div>
-                <div id="awayScore" class="score-cell">0</div>
-                <div id="awayCards" class="red-cards-container"></div>
-            </div>
+        <div class="team-row">
+            <div id="aName" class="team-name">AWAY</div>
+            <div id="aScore" class="score-cell">0</div>
+            <div id="aCards" class="cards-area"></div>
         </div>
     </div>
+</div>
 
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-        // Логика за местене (Drag & Drop)
-        const dragItem = document.getElementById("dragContainer");
-        let active = false, currentX, currentY, initialX, initialY, xOffset = 0, yOffset = 0;
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    const socket = io();
+    let lastH = 0, lastA = 0;
 
-        const dragStart = (e) => {
-            initialX = (e.type === "touchstart" ? e.touches[0].clientX : e.clientX) - xOffset;
-            initialY = (e.type === "touchstart" ? e.touches[0].clientY : e.clientY) - yOffset;
-            if (e.target === dragItem || dragItem.contains(e.target)) active = true;
-        };
+    function getContrast(hex){
+        hex = hex.replace('#','');
+        const r = parseInt(hex.substr(0,2),16), g = parseInt(hex.substr(2,2),16), b = parseInt(hex.substr(4,2),16);
+        return ((r*299)+(g*587)+(b*114))/1000 >= 128 ? '#000000' : '#ffffff';
+    }
 
-        const dragEnd = () => { initialX = currentX; initialY = currentY; active = false; };
+    socket.on('update', (data) => {
+        const hEl = document.getElementById('hName'), aEl = document.getElementById('aName');
+        const hsEl = document.getElementById('hScore'), asEl = document.getElementById('aScore');
 
-        const drag = (e) => {
-            if (active) {
-                e.preventDefault();
-                currentX = (e.type === "touchmove" ? e.touches[0].clientX : e.clientX) - initialX;
-                currentY = (e.type === "touchmove" ? e.touches[0].clientY : e.clientY) - initialY;
-                xOffset = currentX; yOffset = currentY;
-                dragItem.style.transform = `translate3d(${currentX}px, ${currentY}px, 0)`;
-            }
-        };
-
-        window.addEventListener("touchstart", dragStart, false);
-        window.addEventListener("touchend", dragEnd, false);
-        window.addEventListener("touchmove", drag, false);
-        window.addEventListener("mousedown", dragStart, false);
-        window.addEventListener("mouseup", dragEnd, false);
-        window.addEventListener("mousemove", drag, false);
-
-        // Socket.io Логика
-        const socket = io();
-        let lastScore = { home: 0, away: 0 };
+        hEl.innerText = data.homeName;
+        aEl.innerText = data.awayName;
         
-        const formatTime = (s) => {
-            const mins = Math.floor(s / 60).toString().padStart(2, '0');
-            const secs = (s % 60).toString().padStart(2, '0');
-            return `${mins}:${secs}`;
-        };
+        // Цветове
+        hEl.style.backgroundColor = data.homeColor;
+        hEl.style.color = getContrast(data.homeColor);
+        aEl.style.backgroundColor = data.awayColor;
+        aEl.style.color = getContrast(data.awayColor);
 
-        function updateRedCards(id, count) {
-            const container = document.getElementById(id);
-            container.innerHTML = '';
-            for (let i = 0; i < count; i++) {
-                const card = document.createElement('div');
-                card.className = 'red-card-icon';
-                container.appendChild(card);
-            }
-        }
+        // Резултат анимация
+        if(data.home !== lastH) { hsEl.classList.add('score-pop'); setTimeout(()=>hsEl.classList.remove('score-pop'),500); lastH = data.home; }
+        if(data.away !== lastA) { asEl.classList.add('score-pop'); setTimeout(()=>asEl.classList.remove('score-pop'),500); lastA = data.away; }
+        hsEl.innerText = data.home; asEl.innerText = data.away;
 
-        socket.on('update', (data) => {
-            document.getElementById('homeName').innerText = data.homeName;
-            document.getElementById('awayName').innerText = data.awayName;
-            
-            const hScoreEl = document.getElementById('homeScore');
-            const aScoreEl = document.getElementById('awayScore');
+        // Време и картони
+        const m = Math.floor(data.seconds / 60).toString().padStart(2, '0');
+        const s = (data.seconds % 60).toString().padStart(2, '0');
+        document.getElementById('timer').innerText = `${m}:${s}`;
 
-            if (data.home !== lastScore.home) { hScoreEl.classList.add('score-pop'); setTimeout(() => hScoreEl.classList.remove('score-pop'), 600); lastScore.home = data.home; }
-            if (data.away !== lastScore.away) { aScoreEl.classList.add('score-pop'); setTimeout(() => aScoreEl.classList.remove('score-pop'), 600); lastScore.away = data.away; }
+        updateCards('hCards', data.homeRedCards);
+        updateCards('aCards', data.awayRedCards);
+    });
 
-            hScoreEl.innerText = data.home;
-            aScoreEl.innerText = data.away;
-            document.getElementById('timer').innerText = formatTime(data.seconds);
-            updateRedCards('homeCards', data.homeRedCards);
-            updateRedCards('awayCards', data.awayRedCards);
-        });
+    function updateCards(id, count) {
+        const res = document.getElementById(id); res.innerHTML = '';
+        for(let i=0; i<count; i++) res.innerHTML += '<div class="red-card"></div>';
+    }
 
-        socket.on('timerUpdate', (data) => {
-            const sec = typeof data === 'object' ? data.seconds : data;
-            document.getElementById('timer').innerText = formatTime(sec);
-        });
-    </script>
+    // Drag logic
+    const b = document.getElementById('board');
+    let x=0, y=0, dx=0, dy=0, active=false;
+    b.onmousedown = (e) => { active=true; dx=e.clientX-x; dy=e.clientY-y; };
+    window.onmousemove = (e) => { if(active){ x=e.clientX-dx; y=e.clientY-dy; b.style.transform=`translate(${x}px,${y}px)`; } };
+    window.onmouseup = () => active=false;
+</script>
 </body>
 </html>
