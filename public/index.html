@@ -7,7 +7,6 @@
         body { margin: 0; padding: 0; background: transparent; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
         .scoreboard { position: absolute; top: 25px; left: 25px; display: flex; align-items: center; filter: drop-shadow(0 10px 25px rgba(0,0,0,0.85)); z-index: 1000; cursor: grab; }
         
-        /* ЛЯВ БЛОК */
         .brand-block { 
             background: #1a1a1a; 
             padding: 12px; 
@@ -16,21 +15,21 @@
             border-left: 6px solid #ffcc00; 
             border-radius: 8px 0 0 8px; 
             min-width: 125px; 
-            height: 120px; 
+            height: 130px; /* Увеличена височина за повече въздух */
             z-index: 2; 
             box-sizing: border-box; 
         }
 
-        /* Кутия за логото - ПРЕМАХНАТ БЯЛ ФОН И РАМКА */
         .logo-box { 
-            width: 110px; 
+            width: 105px; 
             height: 75px; 
-            background: transparent; /* Вече е прозрачно */
+            background: transparent; 
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            margin-bottom: 5px; 
-            padding: 0; /* Без вътрешно разстояние, за да е максимално голямо */
+            margin-top: 5px; /* Разстояние от горния ръб */
+            margin-bottom: 8px; /* Разстояние до часовника */
+            padding: 5px; /* "Въздух" около самото лого */
             box-sizing: border-box; 
         }
         
@@ -42,14 +41,12 @@
 
         .time-display { font-size: 32px; color: #39FF14; font-weight: 900; font-family: 'Courier New', monospace; text-shadow: 0 0 10px rgba(57, 255, 20, 0.5); }
         
-        /* ДЕСЕН БЛОК */
         .teams-container { display: flex; flex-direction: column; border: 2px solid #333; border-left: none; border-radius: 0 8px 8px 0; background: #1a1a1a; height: 104px; position: relative; }
         .team-row { display: flex; height: 50px; align-items: center; }
         .team-row:first-child { border-bottom: 2px solid #333; }
         .name-cell { width: 320px; padding: 0 20px; font-family: 'Segoe UI', 'Verdana', 'Arial Black', sans-serif; font-size: 24px; font-weight: 900; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; height: 100%; line-height: 50px; }
         .score-cell { width: 75px; background: rgba(0,0,0,0.95); color: #ffcc00; display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: 900; height: 100%; border-left: 2px solid #333; }
         
-        /* КАРТОНИ */
         .cards-layer { position: absolute; left: 100%; top: 0; height: 100%; display: flex; flex-direction: column; justify-content: center; padding-left: 12px; pointer-events: none; }
         .team-cards { display: flex; gap: 5px; height: 52px; align-items: center; }
         .red-card-icon { width: 16px; height: 24px; background: #ff0000; border: 2px solid #fff; border-radius: 2px; box-shadow: 3px 3px 6px rgba(0,0,0,0.6); animation: pop 0.3s ease-out; }
