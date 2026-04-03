@@ -7,44 +7,30 @@
     <style>
         :root { --bg: #121212; --card: #1e1e1e; --accent: #ffcc00; --green: #2ecc71; --red: #e74c3c; --blue: #3498db; }
         body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: white; margin: 0; padding: env(safe-area-inset-top) 10px 40px; }
-        
-        .status-bar { 
-            position: sticky; top: 0; background: var(--bg); z-index: 100; 
-            padding: 10px 0; border-bottom: 1px solid #333; margin-bottom: 15px;
-            display: flex; justify-content: space-between; align-items: center;
-        }
+        .status-bar { position: sticky; top: 0; background: var(--bg); z-index: 100; padding: 10px 0; border-bottom: 1px solid #333; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
         .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 5px; }
         .online { background: var(--green); box-shadow: 0 0 8px var(--green); }
         .offline { background: var(--red); box-shadow: 0 0 8px var(--red); }
-
         .admin-container { max-width: 500px; margin: 0 auto; }
-        .card { background: var(--card); padding: 15px; border-radius: 15px; margin-bottom: 12px; border: 1px solid #333; position: relative; }
-        
-        .btn { border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; text-transform: uppercase; }
+        .card { background: var(--card); padding: 15px; border-radius: 15px; margin-bottom: 12px; border: 1px solid #333; }
+        .btn { border: none; border-radius: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; text-transform: uppercase; transition: 0.2s; }
         .btn:active { transform: scale(0.95); opacity: 0.8; }
-        
-        /* Главни бутони */
         .main-actions { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-bottom: 15px; }
         .btn-sync { background: #fff; color: #000; height: 50px; font-size: 14px; border: 2px solid var(--green); }
         .btn-reset-all { background: var(--red); color: white; height: 50px; font-size: 14px; }
-
         .btn-goal { background: var(--green); color: white; height: 85px; font-size: 26px; width: 100%; }
         .btn-action { background: #333; color: #fff; height: 55px; width: 48%; font-size: 13px; }
         .btn-red-card { background: var(--red); color: white; height: 55px; width: 48%; }
-        
         .row { display: flex; gap: 10px; margin-bottom: 10px; }
-        input[type="text"] { flex: 1; padding: 15px; border-radius: 10px; border: 1px solid #444; background: #2a2a2a; color: white; font-size: 16px; }
-        input[type="color"] { width: 60px; height: 52px; border: none; background: none; }
-
+        input { flex: 1; padding: 15px; border-radius: 10px; border: 1px solid #444; background: #2a2a2a; color: white; font-size: 16px; }
+        input[type="color"] { width: 60px; height: 52px; padding: 0; }
         .score-display { font-size: 60px; font-weight: 900; min-width: 75px; text-align: center; color: var(--accent); }
         .timer-val { font-size: 55px; font-family: monospace; color: #39FF14; text-align: center; margin: 10px 0; font-weight: bold; }
         .timer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-
         .label { font-size: 11px; color: #888; text-transform: uppercase; margin-bottom: 8px; display: block; letter-spacing: 1px; }
     </style>
 </head>
 <body>
-
 <div class="admin-container">
     <div class="status-bar">
         <div><span id="statusDot" class="dot offline"></span> <span id="statusText" style="font-size:12px; font-weight:bold;">CONNECTING...</span></div>
@@ -56,20 +42,23 @@
         <button class="btn btn-reset-all" onclick="resetFullMatch()">🆕 НОВ МАЧ</button>
     </div>
 
-    <!-- Настройки на отборите -->
+    <div class="card">
+        <span class="label">Спонсор (Име на файл в GitHub)</span>
+        <input type="text" id="logoFile" placeholder="logo.jpg" oninput="state.logoFile=this.value; sync()">
+    </div>
+
     <div class="card">
         <span class="label">Имена и Цветове</span>
         <div class="row">
             <input type="text" id="hN" placeholder="Домакин" oninput="state.homeName=this.value">
-            <input type="color" id="hC" value="#ffffff" onchange="state.homeColor=this.value; sync()">
+            <input type="color" id="hC" onchange="state.homeColor=this.value; sync()">
         </div>
         <div class="row">
             <input type="text" id="aN" placeholder="Гост" oninput="state.awayName=this.value">
-            <input type="color" id="aC" value="#ffffff" onchange="state.awayColor=this.value; sync()">
+            <input type="color" id="aC" onchange="state.awayColor=this.value; sync()">
         </div>
     </div>
 
-    <!-- Домакин -->
     <div class="card" style="border-left: 8px solid var(--blue);">
         <span class="label" id="hNameLabel">ДОМАКИН</span>
         <div style="display:flex; align-items:center; margin-bottom:12px;">
@@ -80,10 +69,8 @@
             <button class="btn btn-action" onclick="changeScore('home', -1)">-1 КОРЕКЦИЯ</button>
             <button class="btn btn-red-card" onclick="changeCards('home', 1)">🟥 + КАРТОН</button>
         </div>
-        <button class="btn" style="width:100%; background:none; color:#555; padding:8px; font-size:11px;" onclick="changeCards('home', -1)">Премахни червен картон</button>
     </div>
 
-    <!-- Гост -->
     <div class="card" style="border-left: 8px solid var(--red);">
         <span class="label" id="aNameLabel">ГОСТ</span>
         <div style="display:flex; align-items:center; margin-bottom:12px;">
@@ -94,18 +81,16 @@
             <button class="btn btn-action" onclick="changeScore('away', -1)">-1 КОРЕКЦИЯ</button>
             <button class="btn btn-red-card" onclick="changeCards('away', 1)">🟥 + КАРТОН</button>
         </div>
-        <button class="btn" style="width:100%; background:none; color:#555; padding:8px; font-size:11px;" onclick="changeCards('away', -1)">Премахни червен картон</button>
     </div>
 
-    <!-- Таймер -->
     <div class="card">
-        <span class="label">Контрол на времето</span>
+        <span class="label">Таймер</span>
         <div class="timer-val" id="timeDisp">00:00</div>
         <div class="timer-grid">
             <button class="btn" id="startBtn" style="height:65px; background:var(--blue); color:white;" onclick="toggleTimer()">СТАРТ</button>
             <button class="btn" style="height:65px; background:#8e44ad; color:white;" onclick="setHalf(2700)">45' (2-РО)</button>
-            <button class="btn" style="height:55px; background:#444; color:white;" onclick="setHalf(state.seconds, true)">ПАУЗА/КРАЙ</button>
-            <button class="btn" style="height:55px; background:#2c3e50; color:white; border: 1px solid #444;" onclick="resetOnlyTimer()">НУЛИРАЙ ВРЕМЕ</button>
+            <button class="btn" style="height:55px; background:#444; color:white;" onclick="setHalf(state.seconds, true)">ПАУЗА</button>
+            <button class="btn" style="height:55px; background:#2c3e50; color:white;" onclick="resetOnlyTimer()">НУЛИРАЙ ВРЕМЕ</button>
         </div>
     </div>
 </div>
@@ -113,45 +98,19 @@
 <script src="/socket.io/socket.io.js"></script>
 <script>
     const socket = io();
-    let state = { homeName: "HOME", awayName: "AWAY", home: 0, away: 0, homeRedCards: 0, awayRedCards: 0, homeColor: "#ffffff", awayColor: "#ffffff", seconds: 0, isRunning: false };
+    let state = { homeName: "HOME", awayName: "AWAY", home: 0, away: 0, homeRedCards: 0, awayRedCards: 0, homeColor: "#ffffff", awayColor: "#ffffff", seconds: 0, isRunning: false, logoFile: "logo.jpg" };
 
-    socket.on('connect', () => {
-        document.getElementById('statusDot').className = 'dot online';
-        document.getElementById('statusText').innerText = 'ONLINE';
-    });
+    socket.on('connect', () => { document.getElementById('statusDot').className = 'dot online'; document.getElementById('statusText').innerText = 'ONLINE'; });
+    socket.on('disconnect', () => { document.getElementById('statusDot').className = 'dot offline'; document.getElementById('statusText').innerText = 'OFFLINE'; });
 
-    socket.on('disconnect', () => {
-        document.getElementById('statusDot').className = 'dot offline';
-        document.getElementById('statusText').innerText = 'OFFLINE (RENDER SLEEP)';
-    });
-
+    function sync() { socket.emit('update', state); }
     function changeScore(t, v) { state[t] = Math.max(0, state[t] + v); sync(); }
     function changeCards(t, v) { state[t+'RedCards'] = Math.max(0, state[t+'RedCards'] + v); sync(); }
     function toggleTimer() { state.isRunning = !state.isRunning; sync(); }
     function setHalf(sec, pause = false) { state.seconds = sec; if(pause) state.isRunning = false; sync(); }
-    
-    function resetOnlyTimer() {
-        if(confirm("Нулиране само на таймера?")) {
-            state.seconds = 0;
-            state.isRunning = false;
-            sync();
-        }
-    }
-
-    function resetFullMatch() {
-        if(confirm("ВНИМАНИЕ: Това ще изтрие всички голове, картони и имена! Нов мач?")) {
-            socket.emit('update', { reset: true });
-            setTimeout(() => location.reload(), 500);
-        }
-    }
-
-    function sync() { socket.emit('update', state); }
-    
-    function fullSync() {
-        state.homeName = document.getElementById('hN').value || "ДОМАКИН";
-        state.awayName = document.getElementById('aN').value || "ГОСТ";
-        sync();
-    }
+    function resetOnlyTimer() { if(confirm("Нулиране само на таймера?")) { state.seconds = 0; state.isRunning = false; sync(); } }
+    function resetFullMatch() { if(confirm("ВНИМАНИЕ: Нов мач?")) { socket.emit('update', { reset: true }); setTimeout(() => location.reload(), 500); } }
+    function fullSync() { sync(); }
 
     socket.on('update', (data) => {
         state = data;
@@ -160,12 +119,14 @@
         document.getElementById('hNameLabel').innerText = state.homeName;
         document.getElementById('aNameLabel').innerText = state.awayName;
         
-        const hInp = document.getElementById('hN'), aInp = document.getElementById('aN');
+        const hInp = document.getElementById('hN'), aInp = document.getElementById('aN'), lInp = document.getElementById('logoFile');
         if (document.activeElement !== hInp) hInp.value = state.homeName;
         if (document.activeElement !== aInp) aInp.value = state.awayName;
+        if (document.activeElement !== lInp) lInp.value = state.logoFile || "";
+        
         document.getElementById('hC').value = state.homeColor;
         document.getElementById('aC').value = state.awayColor;
-
+        
         const m = Math.floor(state.seconds / 60).toString().padStart(2, '0');
         const s = (state.seconds % 60).toString().padStart(2, '0');
         document.getElementById('timeDisp').innerText = `${m}:${s}`;
