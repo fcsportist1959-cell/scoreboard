@@ -2,105 +2,117 @@
 <html lang="bg">
 <head>
     <meta charset="UTF-8">
+    <title>Amateur Football Scoreboard</title>
     <style>
         body { margin: 0; padding: 0; background: transparent; font-family: 'Segoe UI', Arial, sans-serif; overflow: hidden; }
         
         .scoreboard { 
             position: absolute; top: 25px; left: 25px; 
-            display: flex; align-items: stretch;
+            display: flex; 
+            align-items: center; /* Центрира имената спрямо по-високия блок с логото */
             filter: drop-shadow(0 8px 20px rgba(0,0,0,0.8));
             z-index: 1000;
             cursor: grab;
         }
 
-        /* Блок Лого и Таймер - Отделен */
+        /* ЛЯВ БЛОК: Спонсор и Таймер (По-висок) */
         .brand-block { 
             background: #1a1a1a; 
-            padding: 15px; 
+            padding: 12px; 
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             border: 2px solid #333;
             border-left: 6px solid #ffcc00;
             border-radius: 8px 0 0 8px;
-            min-width: 120px;
-            margin-right: 2px; /* Малко разстояние, за да не са "залепени" */
+            min-width: 125px;
+            height: 120px; /* По-висок блок */
+            z-index: 2;
+            box-sizing: border-box;
         }
 
         .logo-box { 
-            width: 110px; height: 75px; 
+            width: 100px; height: 70px; 
             background: #ffffff; 
             border-radius: 4px;
-            display: flex; align-items: center; justify-content: center; margin-bottom: 8px;
-            padding: 5px;
+            display: flex; align-items: center; justify-content: center; margin-bottom: 5px;
+            padding: 4px;
+            box-sizing: border-box;
         }
         
-        .logo-box img { max-width: 90%; max-height: 90%; object-fit: contain; }
+        .logo-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
 
-        /* Неоново зелено за видимост на слънце */
+        /* Ярко неоново зелено за максимална видимост */
         .time-display { 
-            font-size: 30px; color: #39FF14; font-weight: 900; 
+            font-size: 32px; color: #39FF14; font-weight: 900; 
             font-family: 'Courier New', monospace; 
-            text-shadow: 0 0 10px rgba(57, 255, 20, 0.5);
+            text-shadow: 0 0 10px rgba(57, 255, 20, 0.4);
         }
 
-        /* Контейнер Отбори - с контур */
+        /* ДЕСЕН БЛОК: Отбори (Слепен и по-нисък) */
         .teams-container { 
             display: flex; flex-direction: column; 
             border: 2px solid #333;
+            border-left: none; /* Премахва двойната линия при застъпването */
             border-radius: 0 8px 8px 0;
-            overflow: hidden;
+            overflow: visible; /* Позволява на картоните да излизат */
             background: #1a1a1a;
-        }
-
-        .team-row { 
-            display: flex; height: 60px; align-items: center; 
+            height: 100px; /* По-нисък блок за раздвижен дизайн */
             position: relative;
         }
 
-        /* Тънка разделителна линия само по средата */
+        .team-row { 
+            display: flex; 
+            height: 50px; 
+            align-items: center; 
+            position: relative;
+        }
+
+        /* Тънка линия само между двата отбора */
         .team-row:first-child {
-            border-bottom: 1px solid rgba(0,0,0,0.4);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
         }
 
         .name-cell { 
-            width: 340px; padding: 0 25px; 
-            font-family: Arial, sans-serif; 
-            font-size: 28px; font-weight: 900; text-transform: uppercase;
+            width: 320px; padding: 0 20px; 
+            font-family: Arial, Helvetica, sans-serif; 
+            font-size: 24px; font-weight: 900; text-transform: uppercase;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            height: 100%; line-height: 60px;
+            height: 100%; line-height: 50px;
         }
 
         .score-cell { 
-            width: 80px; background: rgba(0,0,0,0.9); color: #ffcc00; 
+            width: 75px; background: rgba(0,0,0,0.95); color: #ffcc00; 
             display: flex; align-items: center; justify-content: center; 
-            font-size: 40px; font-weight: 900; height: 100%;
+            font-size: 36px; font-weight: 900; height: 100%;
             border-left: 2px solid #333;
         }
 
-        /* КАРТОНИ - Появяват се отстрани (външни) */
-        .cards-container {
+        /* КАРТОНИ - Появяват се външно отдясно */
+        .cards-layer {
             position: absolute;
-            left: 100%; /* Веднага след края на таблото */
+            left: 100%; /* Веднага след резултата */
             top: 0;
             height: 100%;
             display: flex;
             flex-direction: column;
-            justify-content: space-around;
-            padding-left: 10px;
+            justify-content: center;
+            padding-left: 12px;
             pointer-events: none;
         }
 
-        .team-cards { display: flex; gap: 5px; height: 60px; align-items: center; }
-
-        .red-card-icon { 
-            width: 18px; height: 26px; 
-            background: #ff0000; border: 2px solid #fff; border-radius: 3px;
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
-            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        .team-cards { 
+            display: flex; gap: 5px; height: 50px; align-items: center; 
         }
 
-        @keyframes popIn {
-            0% { transform: scale(0) rotate(-20deg); opacity: 0; }
-            100% { transform: scale(1) rotate(0); opacity: 1; }
+        .red-card-icon { 
+            width: 16px; height: 24px; 
+            background: #ff0000; border: 2px solid #fff; border-radius: 2px;
+            box-shadow: 3px 3px 6px rgba(0,0,0,0.6);
+            animation: pop 0.3s ease-out;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
         }
 
         .goal-flash { animation: flash 0.6s ease-in-out; }
@@ -110,7 +122,7 @@
 <body>
 
 <div id="board" class="scoreboard">
-    <!-- Блок 1: Спонсор и Време -->
+    <!-- Лява част -->
     <div class="brand-block">
         <div class="logo-box">
             <img src="logo.jpg" alt="Logo">
@@ -118,7 +130,7 @@
         <div id="timer" class="time-display">00:00</div>
     </div>
     
-    <!-- Блок 2: Отбори -->
+    <!-- Дясна част -->
     <div class="teams-container">
         <div class="team-row">
             <div id="hN" class="name-cell">HOME</div>
@@ -129,8 +141,8 @@
             <div id="aS" class="score-cell">0</div>
         </div>
 
-        <!-- Слой за картоните (външен) -->
-        <div class="cards-container">
+        <!-- Слой за картоните (извън контейнера визуално) -->
+        <div class="cards-layer">
             <div id="hC" class="team-cards"></div>
             <div id="aC" class="team-cards"></div>
         </div>
@@ -155,6 +167,7 @@
         const hn = document.getElementById('hN'), an = document.getElementById('aN');
         const hs = document.getElementById('hS'), as = document.getElementById('aS');
 
+        // Имената и цветовете
         hn.innerText = data.homeName;
         an.innerText = data.awayName;
         hn.style.backgroundColor = data.homeColor || '#333';
@@ -162,23 +175,26 @@
         an.style.backgroundColor = data.awayColor || '#444';
         an.style.color = getContrast(data.awayColor);
 
+        // Анимация при гол
         if(data.home !== lastH) { hs.classList.add('goal-flash'); setTimeout(()=>hs.classList.remove('goal-flash'), 600); lastH = data.home; }
         if(data.away !== lastA) { as.classList.add('goal-flash'); setTimeout(()=>as.classList.remove('goal-flash'), 600); lastA = data.away; }
         
         hs.innerText = data.home;
         as.innerText = data.away;
 
+        // Време
         const m = Math.floor(data.seconds / 60).toString().padStart(2, '0');
         const s = (data.seconds % 60).toString().padStart(2, '0');
         document.getElementById('timer').innerText = `${m}:${s}`;
 
+        // Картони
         renderCards('hC', data.homeRedCards);
         renderCards('aC', data.awayRedCards);
     });
 
     function renderCards(id, count) {
         const container = document.getElementById(id);
-        if(container.children.length === count) return; // Оптимизация
+        if(container.children.length === count) return;
         container.innerHTML = '';
         for(let i=0; i<count; i++) {
             const card = document.createElement('div');
@@ -187,7 +203,7 @@
         }
     }
 
-    // Drag and Drop логика
+    // Drag & Drop
     const board = document.getElementById('board');
     let x=0, y=0, dx=0, dy=0, active=false;
     board.onmousedown = (e) => { active=true; dx=e.clientX-x; dy=e.clientY-y; };
