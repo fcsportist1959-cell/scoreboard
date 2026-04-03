@@ -13,8 +13,8 @@
         .offline { background: var(--red); box-shadow: 0 0 8px var(--red); }
         .admin-container { max-width: 500px; margin: 0 auto; }
         .card { background: var(--card); padding: 15px; border-radius: 15px; margin-bottom: 12px; border: 1px solid #333; }
-        .btn { border: none; border-radius: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; text-transform: uppercase; transition: 0.2s; }
-        .btn:active { transform: scale(0.95); opacity: 0.8; }
+        .btn { border: none; border-radius: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; text-transform: uppercase; transition: 0.1s; }
+        .btn:active { transform: scale(0.92); opacity: 0.7; }
         .main-actions { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-bottom: 15px; }
         .btn-sync { background: #fff; color: #000; height: 50px; font-size: 14px; border: 2px solid var(--green); }
         .btn-reset-all { background: var(--red); color: white; height: 50px; font-size: 14px; }
@@ -23,7 +23,7 @@
         .btn-red-card { background: var(--red); color: white; height: 55px; width: 48%; }
         .row { display: flex; gap: 10px; margin-bottom: 10px; }
         input { flex: 1; padding: 15px; border-radius: 10px; border: 1px solid #444; background: #2a2a2a; color: white; font-size: 16px; }
-        input[type="color"] { width: 60px; height: 52px; padding: 0; }
+        input[type="color"] { width: 60px; height: 52px; padding: 0; border: none; cursor: pointer; }
         .score-display { font-size: 60px; font-weight: 900; min-width: 75px; text-align: center; color: var(--accent); }
         .timer-val { font-size: 55px; font-family: monospace; color: #39FF14; text-align: center; margin: 10px 0; font-weight: bold; }
         .timer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -50,11 +50,11 @@
     <div class="card">
         <span class="label">Имена и Цветове</span>
         <div class="row">
-            <input type="text" id="hN" placeholder="Домакин" oninput="state.homeName=this.value">
+            <input type="text" id="hN" placeholder="Домакин" oninput="state.homeName=this.value; sync()">
             <input type="color" id="hC" onchange="state.homeColor=this.value; sync()">
         </div>
         <div class="row">
-            <input type="text" id="aN" placeholder="Гост" oninput="state.awayName=this.value">
+            <input type="text" id="aN" placeholder="Гост" oninput="state.awayName=this.value; sync()">
             <input type="color" id="aC" onchange="state.awayColor=this.value; sync()">
         </div>
     </div>
@@ -120,12 +120,13 @@
         document.getElementById('aNameLabel').innerText = state.awayName;
         
         const hInp = document.getElementById('hN'), aInp = document.getElementById('aN'), lInp = document.getElementById('logoFile');
+        const hC = document.getElementById('hC'), aC = document.getElementById('aC');
+
         if (document.activeElement !== hInp) hInp.value = state.homeName;
         if (document.activeElement !== aInp) aInp.value = state.awayName;
         if (document.activeElement !== lInp) lInp.value = state.logoFile || "";
-        
-        document.getElementById('hC').value = state.homeColor;
-        document.getElementById('aC').value = state.awayColor;
+        if (document.activeElement !== hC) hC.value = state.homeColor;
+        if (document.activeElement !== aC) aC.value = state.awayColor;
         
         const m = Math.floor(state.seconds / 60).toString().padStart(2, '0');
         const s = (state.seconds % 60).toString().padStart(2, '0');
