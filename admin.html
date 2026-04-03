@@ -3,70 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mobile Admin - Scoreboard</title>
+    <title>PRO Admin - Scoreboard</title>
     <style>
-        body { font-family: sans-serif; background: #121212; color: white; margin: 0; padding: 10px; }
+        :root { --bg: #121212; --card: #1e1e1e; --accent: #ffcc00; --green: #2ecc71; --red: #e74c3c; }
+        body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: white; margin: 0; padding: env(safe-area-inset-top) 10px 40px; }
+        
+        /* Статус лента */
+        .status-bar { 
+            position: sticky; top: 0; background: var(--bg); z-index: 100; 
+            padding: 10px 0; border-bottom: 1px solid #333; margin-bottom: 15px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        .online { background: var(--green); box-shadow: 0 0 8px var(--green); }
+        .offline { background: var(--red); box-shadow: 0 0 8px var(--red); }
+
         .admin-container { max-width: 500px; margin: 0 auto; }
-        .card { background: #1e1e1e; padding: 15px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #333; }
-        .row { display: flex; gap: 8px; margin-bottom: 10px; }
-        input { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #2a2a2a; color: white; font-size: 16px; }
-        .team-block { background: #1e1e1e; border-radius: 15px; padding: 15px; margin-bottom: 12px; border-left: 6px solid #444; }
-        .home-accent { border-left-color: #3498db; }
-        .away-accent { border-left-color: #e74c3c; }
-        .score-big { font-size: 55px; font-weight: 900; color: #fff; margin-right: 15px; }
-        .btn { border: none; border-radius: 10px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        .btn-goal { background: #2ecc71; color: white; height: 75px; font-size: 22px; width: 100%; margin-bottom: 10px; }
-        .btn-small { background: #333; color: #bbb; height: 45px; font-size: 13px; width: 48%; }
-        .btn-red { background: #c0392b; color: white; height: 45px; font-size: 13px; width: 48%; }
-        .timer-card { background: #2c3e50; padding: 20px; border-radius: 15px; text-align: center; }
-        .timer-val { font-size: 45px; font-family: monospace; color: #00ff00; margin-bottom: 15px; }
+        
+        .card { background: var(--card); padding: 15px; border-radius: 15px; margin-bottom: 12px; border: 1px solid #333; }
+        
+        /* Бутони */
+        .btn { border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; text-transform: uppercase; }
+        .btn:active { transform: scale(0.95); opacity: 0.8; }
+        
+        .btn-sync { background: #fff; color: #000; width: 100%; height: 50px; font-size: 16px; margin-bottom: 10px; border: 2px solid var(--green); }
+        .btn-goal { background: var(--green); color: white; height: 85px; font-size: 26px; width: 100%; }
+        .btn-action { background: #333; color: #fff; height: 55px; width: 48%; font-size: 14px; }
+        .btn-red-card { background: var(--red); color: white; height: 55px; width: 48%; }
+        
+        /* Редове и Инпути */
+        .row { display: flex; gap: 10px; margin-bottom: 10px; }
+        input[type="text"] { flex: 1; padding: 15px; border-radius: 10px; border: 1px solid #444; background: #2a2a2a; color: white; font-size: 16px; }
+        input[type="color"] { width: 60px; height: 52px; border: none; background: none; cursor: pointer; }
+
+        .score-display { font-size: 60px; font-weight: 900; min-width: 70px; text-align: center; }
+        
+        .timer-val { font-size: 50px; font-family: monospace; color: #39FF14; text-align: center; margin: 10px 0; }
         .timer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+        .label { font-size: 12px; color: #888; text-transform: uppercase; margin-bottom: 5px; display: block; }
     </style>
 </head>
 <body>
+
 <div class="admin-container">
-    <div class="card">
-        <div class="row"><input type="text" id="hN" placeholder="Домакин" maxlength="22"><input type="color" id="hC" value="#ffffff"></div>
-        <div class="row"><input type="text" id="aN" placeholder="Гост" maxlength="22"><input type="color" id="aC" value="#ffffff"></div>
-        <button class="btn" style="width:100%; height:45px; background:white; color:black;" onclick="fullSync()">ЗАПАЗИ ИМЕНА И ЦВЕТОВЕ</button>
+    <div class="status-bar">
+        <div><span id="statusDot" class="dot offline"></span> <span id="statusText">СВЪРЗВАНЕ...</span></div>
+        <button class="btn" style="background:#444; color:white; padding:5px 15px;" onclick="location.reload()">REFRESH</button>
     </div>
 
-    <!-- Домакин -->
-    <div class="team-block home-accent">
-        <div id="hNameLabel" style="font-weight:bold; margin-bottom:10px; color:#aaa;">ДОМАКИН</div>
-        <div style="display:flex; align-items:center;">
-            <div class="score-big" id="hScoreDisp">0</div>
+    <button class="btn btn-sync" onclick="fullSync()">🔄 АКТУАЛИЗИРАЙ ВСИЧКО</button>
+
+    <!-- Настройки -->
+    <div class="card">
+        <span class="label">Настройки на отборите</span>
+        <div class="row">
+            <input type="text" id="hN" placeholder="Домакин" onchange="fullSync()">
+            <input type="color" id="hC" value="#ffffff" onchange="fullSync()">
+        </div>
+        <div class="row">
+            <input type="text" id="aN" placeholder="Гост" onchange="fullSync()">
+            <input type="color" id="aC" value="#ffffff" onchange="fullSync()">
+        </div>
+    </div>
+
+    <!-- Домакин Контроли -->
+    <div class="card" style="border-left: 8px solid #3498db;">
+        <span class="label" id="hNameLabel">ДОМАКИН</span>
+        <div style="display:flex; align-items:center; margin-bottom:15px;">
+            <div class="score-display" id="hScoreDisp">0</div>
             <button class="btn btn-goal" onclick="changeScore('home', 1)">+ ГОЛ</button>
         </div>
-        <div style="display:flex; justify-content:space-between;">
-            <button class="btn btn-small" onclick="changeScore('home', -1)">-1 КОРЕКЦИЯ</button>
-            <button class="btn btn-red" onclick="changeCards('home', 1)">🟥 + КАРТОН</button>
+        <div class="row">
+            <button class="btn btn-action" onclick="changeScore('home', -1)">КОРЕКЦИЯ -1</button>
+            <button class="btn btn-red-card" onclick="changeCards('home', 1)">🟥 + КАРТОН</button>
         </div>
-        <button class="btn btn-small" onclick="changeCards('home', -1)" style="width:100%; margin-top:5px; height:30px;">Махни картон</button>
+        <button class="btn" style="width:100%; background:none; color:#666; padding:10px;" onclick="changeCards('home', -1)">Премахни картон</button>
     </div>
 
-    <!-- Гост -->
-    <div class="team-block away-accent">
-        <div id="aNameLabel" style="font-weight:bold; margin-bottom:10px; color:#aaa;">ГОСТ</div>
-        <div style="display:flex; align-items:center;">
-            <div class="score-big" id="aScoreDisp">0</div>
+    <!-- Гост Контроли -->
+    <div class="card" style="border-left: 8px solid #e74c3c;">
+        <span class="label" id="aNameLabel">ГОСТ</span>
+        <div style="display:flex; align-items:center; margin-bottom:15px;">
+            <div class="score-display" id="aScoreDisp">0</div>
             <button class="btn btn-goal" onclick="changeScore('away', 1)">+ ГОЛ</button>
         </div>
-        <div style="display:flex; justify-content:space-between;">
-            <button class="btn btn-small" onclick="changeScore('away', -1)">-1 КОРЕКЦИЯ</button>
-            <button class="btn btn-red" onclick="changeCards('away', 1)">🟥 + КАРТОН</button>
+        <div class="row">
+            <button class="btn btn-action" onclick="changeScore('away', -1)">КОРЕКЦИЯ -1</button>
+            <button class="btn btn-red-card" onclick="changeCards('away', 1)">🟥 + КАРТОН</button>
         </div>
-        <button class="btn btn-small" onclick="changeCards('away', -1)" style="width:100%; margin-top:5px; height:30px;">Махни картон</button>
+        <button class="btn" style="width:100%; background:none; color:#666; padding:10px;" onclick="changeCards('away', -1)">Премахни картон</button>
     </div>
 
-    <!-- Таймер -->
-    <div class="timer-card">
+    <!-- Таймер Контроли -->
+    <div class="card">
+        <span class="label">Време (Минути)</span>
         <div class="timer-val" id="timeDisp">00:00</div>
         <div class="timer-grid">
-            <button class="btn" id="startBtn" style="height:55px; background:#3498db; color:white;" onclick="toggleTimer()">СТАРТ / ПАУЗА</button>
-            <button class="btn" style="height:55px; background:#8e44ad; color:white;" onclick="setHalf(2700)">45' (2-РО)</button>
-            <button class="btn" style="height:50px; background:#444; color:white;" onclick="setHalf(2700, true)">КРАЙ 1-ВО</button>
-            <button class="btn" style="height:50px; background:#c0392b; color:white;" onclick="resetMatch()">НУЛИРАЙ</button>
+            <button class="btn" id="startBtn" style="height:60px; background:#3498db; color:white;" onclick="toggleTimer()">СТАРТ</button>
+            <button class="btn" style="height:60px; background:#8e44ad; color:white;" onclick="setHalf(2700)">45' (2-РО)</button>
+            <button class="btn" style="height:50px; background:#555; color:white;" onclick="setHalf(2700, true)">КРАЙ 1-ВО</button>
+            <button class="btn" style="height:50px; background:var(--red); color:white;" onclick="resetMatch()">НУЛИРАЙ</button>
         </div>
     </div>
 </div>
@@ -76,20 +113,43 @@
     const socket = io();
     let state = { homeName: "HOME", awayName: "AWAY", home: 0, away: 0, homeRedCards: 0, awayRedCards: 0, homeColor: "#ffffff", awayColor: "#ffffff", seconds: 0, isRunning: false };
 
-    function changeScore(t, v) { state[t] = Math.max(0, state[t] + v); fullSync(); }
-    function changeCards(t, v) { state[t+'RedCards'] = Math.max(0, state[t+'RedCards'] + v); fullSync(); }
-    function toggleTimer() { state.isRunning = !state.isRunning; fullSync(); }
-    function setHalf(sec, pause = false) { state.seconds = sec; if(pause) state.isRunning = false; fullSync(); }
+    // Статус индикация
+    socket.on('connect', () => {
+        document.getElementById('statusDot').className = 'dot online';
+        document.getElementById('statusText').innerText = 'ONLINE';
+    });
+
+    socket.on('disconnect', () => {
+        document.getElementById('statusDot').className = 'dot offline';
+        document.getElementById('statusText').innerText = 'OFFLINE';
+    });
+
+    function changeScore(t, v) { state[t] = Math.max(0, state[t] + v); sync(); }
+    function changeCards(t, v) { state[t+'RedCards'] = Math.max(0, state[t+'RedCards'] + v); sync(); }
+    function toggleTimer() { state.isRunning = !state.isRunning; sync(); }
+    function setHalf(sec, pause = false) { 
+        state.seconds = sec; 
+        if(pause) state.isRunning = false; 
+        sync(); 
+    }
     
+    function sync() {
+        socket.emit('update', state);
+    }
+
     function fullSync() {
-        state.homeName = document.getElementById('hN').value || "HOME";
-        state.awayName = document.getElementById('aN').value || "AWAY";
+        state.homeName = document.getElementById('hN').value || "ДОМАКИН";
+        state.awayName = document.getElementById('aN').value || "ГОСТ";
         state.homeColor = document.getElementById('hC').value;
         state.awayColor = document.getElementById('aC').value;
         socket.emit('update', state);
     }
 
-    function resetMatch() { if(confirm("НУЛИРАНЕ?")) { socket.emit('update', { reset: true }); setTimeout(()=>location.reload(), 300); } }
+    function resetMatch() {
+        if(confirm("Всички данни ще бъдат изтрити! Сигурни ли сте?")) {
+            socket.emit('update', { reset: true });
+        }
+    }
 
     socket.on('update', (data) => {
         state = data;
@@ -97,9 +157,15 @@
         document.getElementById('aScoreDisp').innerText = state.away;
         document.getElementById('hNameLabel').innerText = state.homeName;
         document.getElementById('aNameLabel').innerText = state.awayName;
+        
+        // Попълване на инпутите само ако са празни (за да не пречи на писането)
+        if(!document.getElementById('hN').value) document.getElementById('hN').value = state.homeName;
+        if(!document.getElementById('aN').value) document.getElementById('aN').value = state.awayName;
+
         const m = Math.floor(state.seconds / 60).toString().padStart(2, '0');
         const s = (state.seconds % 60).toString().padStart(2, '0');
         document.getElementById('timeDisp').innerText = `${m}:${s}`;
+        
         const btn = document.getElementById('startBtn');
         btn.innerText = state.isRunning ? "ПАУЗА" : "СТАРТ";
         btn.style.background = state.isRunning ? "#e67e22" : "#3498db";
