@@ -53,11 +53,16 @@
     }
 
     socket.on('update', (data) => {
-        // Динамична смяна на логото
+        // ДИНАМИЧНА СМЯНА НА ЛОГОТО С ФИКС ЗА КЕШИРАНЕ
         const logoImg = document.getElementById('mainLogo');
-        const newLogo = data.logoFile || 'logo.jpg';
-        if(logoImg.getAttribute('src') !== newLogo) {
-            logoImg.src = newLogo;
+        const newLogoName = data.logoFile && data.logoFile.trim() !== "" ? data.logoFile : 'logo.jpg';
+        
+        // Проверяваме дали текущият източник съдържа името на новия файл
+        // Използваме URL обекта за чисто сравнение на пътищата
+        const currentSrc = logoImg.src;
+        if (!currentSrc.includes(newLogoName)) {
+            // Добавяме уникален параметър ?t=... за да принудим браузъра да зареди файла наново
+            logoImg.src = newLogoName + "?t=" + new Date().getTime();
         }
 
         const hn = document.getElementById('hN'), an = document.getElementById('aN');
@@ -67,8 +72,10 @@
         hn.style.color = getContrast(data.homeColor);
         an.style.backgroundColor = data.awayColor || '#444';
         an.style.color = getContrast(data.awayColor);
+        
         if(data.home !== lastH) { hs.classList.add('goal-flash'); setTimeout(()=>hs.classList.remove('goal-flash'), 600); lastH = data.home; }
         if(data.away !== lastA) { as.classList.add('goal-flash'); setTimeout(()=>as.classList.remove('goal-flash'), 600); lastA = data.away; }
+        
         hs.innerText = data.home; as.innerText = data.away;
         const m = Math.floor(data.seconds / 60).toString().padStart(2, '0');
         const s = (data.seconds % 60).toString().padStart(2, '0');
