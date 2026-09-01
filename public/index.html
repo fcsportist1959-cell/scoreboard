@@ -115,7 +115,7 @@
 <body>
 <div id="board" class="scoreboard">
     <div class="brand-block">
-        <div class="logo-box"><img id="mainLogo" src="logo.jpg" alt="Logo"></div>
+        <div class="logo-box"><img id="mainLogo" src="4.png" alt="Logo"></div>
         <div id="timer" class="time-display">00:00</div>
     </div>
     <div class="teams-container">
@@ -150,7 +150,7 @@
 
     socket.on('update', (data) => {
         const logoImg = document.getElementById('mainLogo');
-        const newLogoName = data.logoFile && data.logoFile.trim() !== "" ? data.logoFile : 'logo.jpg';
+        const newLogoName = data.logoFile && data.logoFile.trim() !== "" ? data.logoFile : '4.png';
         const currentSrc = logoImg.src;
         if (!currentSrc.includes(newLogoName)) {
             logoImg.src = newLogoName + "?t=" + new Date().getTime();
