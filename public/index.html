@@ -22,7 +22,7 @@
         /* ЛЯВ БЛОК */
         .brand-block { 
             background: #1a1a1a; 
-            padding: 12px; 
+            padding: 6px; /* Намален отстъп, за да дадем въздух на логото */
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
             border: 2px solid #333; 
             border-left: 6px solid #ffcc00; 
@@ -34,11 +34,13 @@
         }
 
         .logo-box { 
-            width: 105px; height: 54px; 
+            width: 113px; /* Увеличена ширина до максимума на кутията */
+            height: 64px; /* Максимална височина за емблемата */
             background: transparent; 
             display: flex; align-items: center; justify-content: center; 
-            margin-top: 2px; margin-bottom: 6px; 
-            padding: 5px; box-sizing: border-box; 
+            margin-top: 0px; margin-bottom: 2px; 
+            padding: 0px; /* ПРЕМАХНАТ ПАДИНГ: Логото вече се разпъва до края на границите си */
+            box-sizing: border-box; 
         }
         
         .logo-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
