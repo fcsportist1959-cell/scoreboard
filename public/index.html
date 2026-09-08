@@ -12,49 +12,187 @@
             filter: drop-shadow(0 10px 25px rgba(0,0,0,0.85)); 
             z-index: 1000; 
             cursor: grab; 
+            /* ЗАЩИТА ПРИ СКАЛИРАНЕ: Принуждава PRISM да рендира ясни граници без размазване */
             image-rendering: -webkit-optimize-contrast;
             image-rendering: crisp-edges;
             transform-style: preserve-3d;
             backface-visibility: hidden;
         }
         
-        .brand-block { background: #1a1a1a; padding: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px solid #333; border-left: 6px solid #ffcc00; border-radius: 8px 0 0 8px; min-width: 125px; height: 110px; z-index: 2; box-sizing: border-box; }
-        .logo-box { width: 112px; height: 64px; background: transparent; display: flex; align-items: center; justify-content: center; margin-top: 0px; margin-bottom: 2px; padding: 0px; box-sizing: border-box; filter: drop-shadow(0px 1px 2px rgba(255,255,255,0.1)); }
-        .logo-box img { max-width: 100%; max-height: 100%; object-fit: contain; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges; image-rendering: pixelated; transform: translateZ(0); backface-visibility: hidden; }
+        /* ЛЯВ БЛОК */
+        .brand-block { 
+            background: #1a1a1a; 
+            padding: 6px; /* Намален отстъп, за да дадем въздух на логото */
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            border: 2px solid #333; 
+            border-left: 6px solid #ffcc00; 
+            border-radius: 8px 0 0 8px; 
+            min-width: 125px; 
+            height: 110px; /* Оптимизирано четно число */
+            z-index: 2; 
+            box-sizing: border-box; 
+        }
+
+        .logo-box { 
+            width: 113px; /* Увеличена ширина до максимума на кутията */
+            height: 64px; /* Максимална височина за емблемата */
+            background: transparent; 
+            display: flex; align-items: center; justify-content: center; 
+            margin-top: 0px; margin-bottom: 2px; 
+            padding: 0px; /* ПРЕМАХНАТ ПАДИНГ: Логото вече се разпъва до края на границите си */
+            box-sizing: border-box; 
+        }
         
-        .time-display { background: #111; color: #ffcc00; font-size: 24px; font-weight: bold; padding: 2px 10px; border-radius: 4px; border: 1px solid #333; min-width: 70px; text-align: center; font-family: monospace; }
-        .match-block { display: flex; background: rgba(20, 20, 20, 0.95); border: 2px solid #333; border-left: none; border-radius: 0 8px 8px 0; height: 110px; box-sizing: border-box; overflow: hidden; }
-        .team { display: flex; align-items: center; padding: 0 20px; min-width: 180px; }
-        .team-name { color: #fff; font-size: 22px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-        .score { background: #151515; color: #fff; font-size: 48px; font-weight: 800; width: 80px; display: flex; align-items: center; justify-content: center; border-left: 1px solid #252525; border-right: 1px solid #252525; font-family: monospace; }
-        .score-home { color: #fff; }
-        .score-away { color: #fff; }
+        .logo-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+        .time-display { 
+            font-size: 32px; color: #39FF14; font-weight: 900; 
+            font-family: 'Courier New', monospace; 
+            text-shadow: 0 0 10px rgba(57, 255, 20, 0.5); 
+            line-height: 1;
+        }
+        
+        /* ДЕСЕН БЛОК */
+        .teams-container { 
+            display: flex; 
+            flex-direction: column; 
+            border: 2px solid #333; 
+            border-left: none; 
+            border-radius: 0 8px 8px 0; 
+            background: #1a1a1a; 
+            height: 110px; /* Идеално напасване */
+            position: relative;
+            box-sizing: border-box;
+            justify-content: space-between; /* Автоматично разпределя редовете абсолютно симетрично */
+        }
+
+        .team-row { 
+            display: flex; 
+            flex: 1; /* Казва на PRISM: Двата реда ЗАДЪЛЖИТЕЛНО заемат точно по 50% от пространството, независимо от процентите на скалата */
+            align-items: center; 
+            box-sizing: border-box;
+            background: #1a1a1a;
+            position: relative;
+        }
+
+        /* Създаваме средната линия по нов начин, който не деформира височината при 90% мащаб */
+        .team-row:first-child::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            height: 2px;
+            background: #333;
+            z-index: 10;
+        }
+
+        .name-cell { 
+            width: 320px; padding: 0 20px; 
+            font-family: 'Segoe UI', 'Verdana', 'Arial Black', sans-serif; 
+            font-size: 24px; font-weight: 900; text-transform: uppercase; 
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
+            height: 100%; 
+            display: flex;
+            align-items: center; /* Подравнява текста точно в центъра по вертикала */
+        }
+
+        .score-cell { 
+            width: 75px; background: rgba(0,0,0,0.95); color: #ffcc00; 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 36px; font-weight: 900; height: 100%; 
+            border-left: 2px solid #333; 
+        }
+        
+        /* КАРТОНИ */
+        .cards-layer { position: absolute; left: 100%; top: 0; height: 100%; display: flex; flex-direction: column; justify-content: space-between; padding-left: 12px; pointer-events: none; }
+        .team-cards { display: flex; gap: 5px; flex: 1; align-items: center; }
+        .red-card-icon { width: 16px; height: 24px; background: #ff0000; border: 2px solid #fff; border-radius: 2px; box-shadow: 3px 3px 6px rgba(0,0,0,0.6); animation: pop 0.3s ease-out; }
+        
+        @keyframes pop { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+        .goal-flash { animation: flash 0.6s ease-in-out; }
+        @keyframes flash { 50% { background: #ffffff !important; color: #000000 !important; } }
     </style>
 </head>
 <body>
-
-    <div class="scoreboard">
-        <!-- ЛЯВ БЛОК С КОНТРАСТНО ЛОГО -->
-        <div class="brand-block">
-            <div class="logo-box">
-                <!-- Заменете 'logo.png' с линка към вашето лого -->
-                <img src="logo.png" alt="Logo">
-            </div>
-            <div class="time-display">00:00</div>
+<div id="board" class="scoreboard">
+    <div class="brand-block">
+        <div class="logo-box"><img id="mainLogo" src="4.png" alt="Logo"></div>
+        <div id="timer" class="time-display">00:00</div>
+    </div>
+    <div class="teams-container">
+        <div class="team-row">
+            <div id="hN" class="name-cell">HOME</div>
+            <div id="hS" class="score-cell">0</div>
         </div>
-        
-        <!-- ДЕСЕН БЛОК С РЕЗУЛТАТ -->
-        <div class="match-block">
-            <div class="team team-home">
-                <span class="team-name">Домакин</span>
-            </div>
-            <div class="score score-home">0</div>
-            <div class="score score-away">0</div>
-            <div class="team team-away">
-                <span class="team-name">Гост</span>
-            </div>
+        <div class="team-row">
+            <div id="aN" class="name-cell">AWAY</div>
+            <div id="aS" class="score-cell">0</div>
+        </div>
+        <div class="cards-layer">
+            <div id="hC" class="team-cards"></div>
+            <div id="aC" class="team-cards"></div>
         </div>
     </div>
+</div>
 
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    const socket = io();
+    let lastH = 0, lastA = 0;
+
+    function getContrast(hex){
+        if(!hex) return '#ffffff';
+        hex = hex.replace('#','');
+        if(hex.length === 3) hex = hex.split('').map(s => s+s).join('');
+        const r = parseInt(hex.substr(0,2),16), g = parseInt(hex.substr(2,2),16), b = parseInt(hex.substr(4,2),16);
+        const yiq = ((r*299)+(g*587)+(b*114))/1000;
+        return (yiq >= 135) ? '#000000' : '#ffffff';
+    }
+
+    socket.on('update', (data) => {
+        const logoImg = document.getElementById('mainLogo');
+        const newLogoName = data.logoFile && data.logoFile.trim() !== "" ? data.logoFile : '4.png';
+        const currentSrc = logoImg.src;
+        if (!currentSrc.includes(newLogoName)) {
+            logoImg.src = newLogoName + "?t=" + new Date().getTime();
+        }
+
+        const hn = document.getElementById('hN'), an = document.getElementById('aN');
+        const hs = document.getElementById('hS'), as = document.getElementById('aS');
+        hn.innerText = data.homeName; an.innerText = data.awayName;
+        hn.style.backgroundColor = data.homeColor || '#333';
+        hn.style.color = getContrast(data.homeColor);
+        an.style.backgroundColor = data.awayColor || '#444';
+        an.style.color = getContrast(data.awayColor);
+        
+        if(data.home !== lastH) { hs.classList.add('goal-flash'); setTimeout(()=>hs.classList.remove('goal-flash'), 600); lastH = data.home; }
+        if(data.away !== lastA) { as.classList.add('goal-flash'); setTimeout(()=>as.classList.remove('goal-flash'), 600); lastA = data.away; }
+        
+        hs.innerText = data.home; as.innerText = data.away;
+        const m = Math.floor(data.seconds / 60).toString().padStart(2, '0');
+        const s = (data.seconds % 60).toString().padStart(2, '0');
+        document.getElementById('timer').innerText = `${m}:${s}`;
+        renderCards('hC', data.homeRedCards);
+        renderCards('aC', data.awayRedCards);
+    });
+
+    function renderCards(id, count) {
+        const container = document.getElementById(id);
+        if(container.children.length === count) return;
+        container.innerHTML = '';
+        for(let i=0; i<count; i++) {
+            const card = document.createElement('div');
+            card.className = 'red-card-icon';
+            container.appendChild(card);
+        }
+    }
+
+    const board = document.getElementById('board');
+    let x=0, y=0, dx=0, dy=0, active=false;
+    board.onmousedown = (e) => { active=true; dx=e.clientX-x; dy=e.clientY-y; };
+    window.onmousemove = (e) => { if(active){ x=e.clientX-dx; y=e.clientY-dy; board.style.transform=`translate(${x}px,${y}px)`; } };
+    window.onmouseup = () => active=false;
+</script>
 </body>
 </html>
