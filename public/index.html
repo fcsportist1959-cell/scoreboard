@@ -19,54 +19,37 @@
             backface-visibility: hidden;
         }
         
-        /* ЛЯВ БЛОК - КОРИГИРАН: Минималната широчина е изравнена перфектно с дължината на часовника */
+        /* ЛЯВ БЛОК */
         .brand-block { 
             background: #1a1a1a; 
-            padding: 8px 12px; /* Увеличени отстъпи за по-добра симетрия */
+            padding: 6px; /* Намален отстъп, за да дадем въздух на логото */
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
             border: 2px solid #333; 
             border-left: 6px solid #ffcc00; 
             border-radius: 8px 0 0 8px; 
-            min-width: 145px; /* Увеличена от 125px на 145px, за да съвпадне с часовника */
-            height: 110px; 
+            min-width: 125px; 
+            height: 110px; /* Оптимизирано четно число */
             z-index: 2; 
             box-sizing: border-box; 
         }
 
-        /* ЛОГО КУТИЯ - КОРИГИРАНА: Разширена максимално до границите на часовника за повече пиксели и яснота */
         .logo-box { 
-            width: 125px; /* Увеличена от 113px на 125px */
-            height: 66px; /* Увеличена от 64px на 66px за допълнителен вертикален обем */
+            width: 113px; /* Увеличена ширина до максимума на кутията */
+            height: 64px; /* Максимална височина за емблемата */
             background: transparent; 
             display: flex; align-items: center; justify-content: center; 
             margin-top: 0px; margin-bottom: 2px; 
-            padding: 0px; 
+            padding: 0px; /* ПРЕМАХНАТ ПАДИНГ: Логото вече се разпъва до края на границите си */
             box-sizing: border-box; 
         }
         
-        /* ОПТИМИЗАЦИЯ НА ИЗОБРАЖЕНИЕТО ЗА PRISM */
-        .logo-box img { 
-            max-width: 100%; 
-            max-height: 100%; 
-            object-fit: contain; 
-            
-            image-rendering: -webkit-optimize-contrast; 
-            image-rendering: crisp-edges;
-            image-rendering: pixelated;
-            
-            transform: translateZ(0);
-            will-change: transform;
-            
-            /* Филтър за допълнително "насичане" на ръбовете, за да изпъкне в стрийма */
-            filter: contrast(1.20) brightness(1.05);
-        }
+        .logo-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
 
         .time-display { 
             font-size: 32px; color: #39FF14; font-weight: 900; 
             font-family: 'Courier New', monospace; 
             text-shadow: 0 0 10px rgba(57, 255, 20, 0.5); 
             line-height: 1;
-            white-space: nowrap; /* Гарантира, че часовникът няма да се пренесе */
         }
         
         /* ДЕСЕН БЛОК */
